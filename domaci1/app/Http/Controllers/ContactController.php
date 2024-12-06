@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
 use Illuminate\Http\Request;
 
 class ContactController extends Controller
@@ -13,7 +14,7 @@ class ContactController extends Controller
      */
     public function index()
     {
-        //
+        return response()->json(Contact::all());
     }
 
     /**
@@ -23,7 +24,7 @@ class ContactController extends Controller
      */
     public function create()
     {
-        //
+        return response()->json(Contact::all());
     }
 
     /**
@@ -32,9 +33,17 @@ class ContactController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Contact $contact)
     {
-        //
+        $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'contact_name' => 'required|string',
+            'contact_email' => 'nullable|string|email',
+            'contact_phone' => 'nullable|string',
+        ]);
+
+        $contact = Contact::create($request->all());
+        return response()->json($contact, 201);
     }
 
     /**
@@ -45,40 +54,11 @@ class ContactController extends Controller
      */
     public function show($id)
     {
-        //
+        $contact = Contact::find($id);
+        if (!$contact) {
+            return response()->json(['message' => 'Contact not found'], 404);
+        }
+        return response()->json($contact);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }
