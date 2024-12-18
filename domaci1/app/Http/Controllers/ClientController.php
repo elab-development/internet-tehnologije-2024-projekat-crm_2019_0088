@@ -7,32 +7,19 @@ use Illuminate\Http\Request;
 
 class ClientController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+  
     public function index()
     {
         return response()->json(Client::with('contacts')->get());
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    
     public function create()
     {
         return response()->json(new Client());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    
     public function store(Request $request,$clientId)
     {
         $client = Client::findOrFail($clientId);
@@ -40,5 +27,23 @@ class ClientController extends Controller
         return response()->json($contact, 201);
     }
 
-   
+    public function update(Request $request, $clientId)
+    {
+        $client = Client::findOrFail($clientId);
+        $client->update($request->all());
+        return response()->json($client);
+    }
+
+    public function show($clientId)
+    {
+        $client = Client::findOrFail($clientId);
+        return response()->json($client);
+    }
+
+    public function destroy($clientId)
+    {
+        $client = Client::findOrFail($clientId);
+        $client->delete();
+        return response()->json(['message' => 'Client deleted successfully']);
+    }
 }
