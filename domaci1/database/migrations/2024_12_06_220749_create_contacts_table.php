@@ -20,11 +20,8 @@ return new class extends Migration
             $table->string('contact_email')->nullable();
             $table->string('contact_phone')->nullable();
             $table->timestamps();
-            
-            
         });
-
-
+        
     }
 
     /**
