@@ -41,4 +41,25 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+
+    public function role()
+{
+    return $this->belongsTo(Role::class);
+}
+public function cliens()
+{
+    return $this->hasMany(Client::class,'created_by');
+}
+protected static function boot()
+{
+    parent::boot();
+
+    static::creating(function ($user) {
+        if (!$user->role_id) {
+            $user->role_id = Role::where('name', 'User')->first()->id; // Podrazumevana uloga je 'User'
+        }
+    });
+}
+
 }

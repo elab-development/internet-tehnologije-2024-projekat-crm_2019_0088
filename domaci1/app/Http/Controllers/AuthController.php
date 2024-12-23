@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,19 +14,42 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function register()
+    public function register(Request $request)
     {
 
-        $data = request()->validate([
+        $request -> validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
+            
         ]);
 
-        $user = User::create($data);
-        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['message' => 'User created successfully', 'token' => $token], 201);
+        // Provera da li je email već zauzet
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json(['message' => 'Email je već zauzet'], 400);
+        }
+
+        // Provera da li je lozinka dovoljno jaka
+        if (strlen($request->password) < 8) {
+            return response()->json(['message' => 'Lozinka mora imati minimum 8 karaktera'], 400);
+        }
+
+        // Provera da li je email u validnom formatu 
+        if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['message' => 'Email nije u validnom formatu'], 400);
+        }
+        //$user = User::create($data);
+       // $token = $user->createToken('auth_token')->plainTextToken;
+
+       $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
+        'role_id' => Role::where('name', 'User')->first()->id, // Dodeljuje 'User' rolu
+    ]);
+
+    return response()->json(['message' => 'User registered successfully!'], 201);
     }
 
     /**

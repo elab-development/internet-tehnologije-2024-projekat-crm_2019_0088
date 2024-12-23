@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
-            $table->string('company')->nullable();
+            $table->string('company_name')->nullable();
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
         
