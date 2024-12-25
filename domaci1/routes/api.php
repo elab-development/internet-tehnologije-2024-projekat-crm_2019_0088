@@ -8,41 +8,36 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-Route::apiResource('clients', ClientController::class);
-Route::apiResource('contacts', ContactController::class);
+Route::prefix('api')->group(function () {
 
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
-Route::post('logout', [AuthController::class, 'logout']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
 
 Route::middleware('auth:sanctum')->group(function () {
-Route::post('clients/{clientId}/contacts', [ClientController::class, 'store']);
-Route::put('clients/{clientId}', [ClientController::class, 'update']);
-Route::delete('clients/{clientId}', [ClientController::class, 'destroy']);
-Route::get('clients/{clientId}', [ClientController::class, 'show']);
+    
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-Route::post('contacts/{contactId}', [ContactController::class, 'store']);
-Route::put('contacts/{contactId}', [ContactController::class, 'update']);
-Route::delete('contacts/{contactId}', [ContactController::class, 'destroy']);
-Route::get('contacts/{contactId}', [ContactController::class, 'show']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-Route::apiResource('invoices', InvoiceController::class);
-
-Route::post('invoices/{invoiceId}', [InvoiceController::class, 'store']);
-Route::put('invoices/{invoiceId}', [InvoiceController::class, 'update']);
-Route::delete('invoices/{invoiceId}', [InvoiceController::class, 'destroy']);
-Route::get('invoices/{invoiceId}', [InvoiceController::class, 'show']);
-
-
-Route::middleware('role:Admin')->group(function () {
     Route::apiResource('clients', ClientController::class);
+    Route::get('clients/{client}/contacts', [ClientController::class, 'getContacts']);
+    Route::get('clients/{client}/invoices', [ClientController::class, 'getInvoices']);
+
+         // Contact routes
+    Route::apiResource('contacts', ContactController::class);
+
+         // Invoice routes
+    Route::apiResource('invoices', InvoiceController::class);
+ 
+         // Admin only routes
+    Route::middleware('role:Admin')->group(function () {
+        Route::get('/users', [AuthController::class, 'index']);
+        Route::delete('/users/{user}', [AuthController::class, 'destroy']);
+    });
+
 });
-
-
 
 });

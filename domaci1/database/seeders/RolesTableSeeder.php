@@ -12,7 +12,7 @@ class RolesTableSeeder extends Seeder
     {
         Role::truncate();
 
-        $roles = ['Admin', 'Manager', 'Client'];
+        $roles = ['Admin', 'User', 'Client'];
 
     foreach ($roles as $role) {
         Role::firstOrCreate(['name' => $role]);

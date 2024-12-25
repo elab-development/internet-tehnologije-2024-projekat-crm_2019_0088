@@ -10,40 +10,75 @@ class ClientController extends Controller
   
     public function index()
     {
-        return response()->json(Client::with('contacts')->get());
+        $clients = Client::with(['contacts', 'invoices'])
+            ->when(!auth()->user()->hasRole('Admin'), function ($query) {
+                return $query->where('created_by', auth()->id());
+            })
+            ->get();
+            
+        return response()->json($clients);
+
+        //return response()->json(Client::with('contacts')->get());
     }
 
     
-    public function create()
+    public function store(Request $request)
     {
-        return response()->json(new Client());
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:clients,email',
+            'phone' => 'nullable|string|max:20',
+            'company' => 'nullable|string|max:255'
+        ]);
+
+        $validated['created_by'] = auth()->id();
+        $client = Client::create($validated);
+
+        return response()->json($client, 201);
     }
 
-    
-    public function store(Request $request,$clientId)
+    public function update(Request $request, Client $client)
     {
-        $client = Client::findOrFail($clientId);
-        $contact = $client->contacts()->create($request->all());
-        return response()->json($contact, 201);
-    }
+        $this->authorize('update', $client);
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:clients,email,' . $client->id,
+            'phone' => 'nullable|string|max:20',
+            'company' => 'nullable|string|max:255'
+        ]);
 
-    public function update(Request $request, $clientId)
-    {
-        $client = Client::findOrFail($clientId);
-        $client->update($request->all());
+        $client->update($validated);
         return response()->json($client);
     }
 
-    public function show($clientId)
+    public function show(Client $client)
     {
-        $client = Client::findOrFail($clientId);
-        return response()->json($client);
+        $this->authorize('view', $client);
+        return response()->json($client->load(['contacts', 'invoices']));
     }
 
-    public function destroy($clientId)
+    public function destroy(Client $client)
     {
-        $client = Client::findOrFail($clientId);
+        $this->authorize('delete', $client);
         $client->delete();
         return response()->json(['message' => 'Client deleted successfully']);
     }
+
+
+    
+    public function getContacts(Client $client)
+    {
+        $this->authorize('view', $client);
+        return response()->json($client->contacts);
+    }
+
+    public function getInvoices(Client $client)
+    {
+        $this->authorize('view', $client);
+        return response()->json($client->invoices);
+    }
+    
+
+    
 }

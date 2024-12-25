@@ -9,14 +9,23 @@ class Client extends Model
 {
     use HasFactory;
 
-
-    protected $fillable = ['name', 'email', 'phone', 'company'];
-
+    protected $table = 'clients';
+    protected $fillable = [
+        'name', 
+        'email', 
+        'phone', 
+        'company',
+        'created_by'
+    ];
     public function contacts()
     {
         return $this->hasMany(Contact::class);
     }
     public function invoices(){
         return $this->hasMany(Invoice::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

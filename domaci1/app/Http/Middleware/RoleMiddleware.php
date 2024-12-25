@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Auth;
 class RoleMiddleware
 {
   
-    public function handle($request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, $role)
     {
-        if (auth()->check() && auth()->user()->role->name === $role) {
-            return $next($request);
+        if (!$request->user() || !$request->user()->hasRole($role)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
-    
-        return response()->json(['error' => 'Unauthorized'], 403);
+
+        return $next($request);
     }
     
 }

@@ -24,6 +24,14 @@ class AuthController extends Controller
             
         ]);
 
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role_id' => Role::where('name', 'Client')->first()->id,
+        ]);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
 
         // Provera da li je email već zauzet
         if (User::where('email', $request->email)->exists()) {
@@ -41,44 +49,50 @@ class AuthController extends Controller
         }
         //$user = User::create($data);
        // $token = $user->createToken('auth_token')->plainTextToken;
+       $user = $request->user(); // ili Auth::user();
 
-       $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password),
-        'role_id' => Role::where('name', 'User')->first()->id, // Dodeljuje 'User' rolu
-    ]);
+       if (!$user) {
+           return response()->json([
+               'error' => 'User not authenticated.'
+           ], 401);
+       }
+       
+       
+       return response()->json([
+        'message' => 'User registered successfully',
+        'user' => $user,
+        'token' => $token
+         ], 201);
 
-    return response()->json(['message' => 'User registered successfully!'], 201);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function login()
+    
+    public function login(Request $request)
     {
-        $data = request()->validate([
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:8',
         ]);
 
-        if (!Auth::attempt($data)) {
+
+        if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
+        $user = Auth::user();
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        $token = auth()->user()->createToken('auth_token')->plainTextToken;
-        return response()->json(['message' => 'Login successful', 'token' => $token], 200);
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => $user,
+            'token' => $token
+        ], 200);
     }
 
 
-    public function logout()
+    public function logout(Request $request)
     {
-        
-
-        auth()->user()->tokens()->delete();
-        return response()->json(['message' => 'Logout successful'], 200);
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Logged out successfully']);
     }
 
 
