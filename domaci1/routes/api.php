@@ -38,4 +38,11 @@ Route::put('invoices/{invoiceId}', [InvoiceController::class, 'update']);
 Route::delete('invoices/{invoiceId}', [InvoiceController::class, 'destroy']);
 Route::get('invoices/{invoiceId}', [InvoiceController::class, 'show']);
 
+
+Route::middleware('role:Admin')->group(function () {
+    Route::apiResource('clients', ClientController::class);
+});
+
+
+
 });
