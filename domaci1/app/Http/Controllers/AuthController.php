@@ -28,7 +28,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role_id' => Role::where('name', 'Client')->first()->id,
+            'role_id' => Role::where('name', 'User')->first()->id,
         ]);
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -47,10 +47,7 @@ class AuthController extends Controller
         if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
             return response()->json(['message' => 'Email nije u validnom formatu'], 400);
         }
-        //$user = User::create($data);
-       // $token = $user->createToken('auth_token')->plainTextToken;
-       $user = $request->user(); // ili Auth::user();
-
+        
        if (!$user) {
            return response()->json([
                'error' => 'User not authenticated.'
