@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Role;
 use App\Models\User;
 
@@ -17,6 +19,22 @@ class RolesTableSeeder extends Seeder
         $userRole = Role::create(['name' => 'User']);
         $clientRole = Role::create(['name' => 'Client']);
 
+        Contact::create([
+            
+        ]);
+        //Dodavanje klijenata
+        Client::create([
+            'name' => 'Nikola P',
+            'email' => 'nikola@example.com',
+            'phone' => '061 1233 241',
+            'company' => 'Sony',
+        ]);
+        Client::create([
+            'name' => 'Nemanja P',
+            'email' => 'nemanja@example.com',
+            'phone' => '061 1111 241',
+            'company' => 'Nvidia',
+        ]);
         // Dodajte korisnike sa dodeljenim rolama
         User::create([
             'name' => 'Admin User',

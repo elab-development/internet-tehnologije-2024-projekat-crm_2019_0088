@@ -9,7 +9,9 @@ class UserController extends Controller
 {
     public function index()
     {
-        return User::all();
+        $user = User::all();
+        return $user;
+
     }
 
     public function show(User $user)

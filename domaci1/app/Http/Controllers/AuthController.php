@@ -56,60 +56,17 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out']);
     }
 
-    public function show($id)
+    public function show(User $user)
     {
-        try {
-            $user = User::with('role')->findOrFail($id);
-            
-            return response()->json([
-                'status' => 'success',
-                'user' => $user
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Korisnik nije pronađen',
-                'error' => $e->getMessage()
-            ], 404);
-        }
+        return response()->json($user);
     }
 
-    public function destroy($id)
+    public function destroy(User $user) 
     {
-        try {
-            $user = User::findOrFail($id);
-            
-            // Provera da li korisnik pokušava da obriše sam sebe
-            if ($user->id === auth()->id()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Ne možete obrisati svoj nalog'
-                ], 403);
-            }
-
-            DB::beginTransaction();
-            
-            // Prvo brišemo sve tokene korisnika
-            $user->tokens()->delete();
-            
-            // Zatim brišemo korisnika
-            $user->delete();
-            
-            DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Korisnik je uspešno obrisan'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Greška pri brisanju korisnika',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        $user->tokens()->delete();
+        $user->delete();
+        return response()->json(['message' => 'Korisnik je uspešno obrisan']);
     }
+
+
 }

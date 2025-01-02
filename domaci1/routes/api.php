@@ -7,23 +7,11 @@ use App\Http\Controllers\InvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
-use App\Http\Controllers\UserController;
-
-
-// Rute za upravljanje korisnicima
-Route::middleware(['auth:sanctum', 'role:Admin'])->group(function() {
-    Route::apiResource('users', UserController::class);
-});
-
-
-
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::middleware('auth:sanctum')->group(function () {
-
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -31,15 +19,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Klijenti API rute
     Route::apiResource('clients', ClientController::class);
-    Route::get('clients/{client}/contacts', [ClientController::class, 'getContacts']);
-    Route::get('clients/{client}/invoices', [ClientController::class, 'getInvoices']);
+    Route::get('clients/{client}/contacts', [ClientController::class, 'getContacts'])->name('clients.contacts');
+    Route::get('clients/{client}/invoices', [ClientController::class, 'getInvoices'])->name('clients.invoices');
     
     // Kontakti API rute
     Route::apiResource('contacts', ContactController::class);
     
     // Fakture API rute
     Route::apiResource('invoices', InvoiceController::class);
-    
+
     // Admin samo rute
     Route::middleware('role:Admin')->group(function () {
         Route::get('/users', [AuthController::class, 'index']);
@@ -52,8 +40,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // User samo rute
     Route::middleware('role:User')->group(function () {
         Route::post('/clients', [ClientController::class, 'store']);
-        Route::get('/clients/{client}', [ClientController::class, 'show']);
-        Route::delete('/clients/{client}', [ClientController::class, 'destroy']);
         Route::put('/clients/{client}', [ClientController::class, 'update']);
     });
 });
