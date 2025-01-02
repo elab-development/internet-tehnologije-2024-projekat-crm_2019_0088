@@ -4,18 +4,17 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class RoleMiddleware
 {
-  
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
-        if (!$request->user() || !$request->user()->hasRole($role)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$request->user() || !in_array($request->user()->role->name, $roles)) {
+            return response()->json([
+                'message' => 'Nemate dozvolu za pristup ovom resursu'
+            ], 403);
         }
 
         return $next($request);
     }
-    
 }
