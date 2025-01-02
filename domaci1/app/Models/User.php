@@ -36,13 +36,13 @@ class User extends Authenticatable
     {
     return $this->belongsTo(Role::class);
     }
-    public function cliens()
+    public function clients()
     {
     return $this->hasMany(Client::class,'created_by');
     }
     public function hasRole($roleName)
     {
-    return $this->role->name === $roleName;
+    return $this->role && $this->role->name === $roleName;
     }
 protected static function boot()
 {

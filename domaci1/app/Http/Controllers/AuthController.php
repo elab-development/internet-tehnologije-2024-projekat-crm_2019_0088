@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,45 +22,30 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
-            
+            'role'=>'nullable|in:Admin,User,Client',
         ]);
-
+        $roleName = $request->role ?: 'User';
+        $role = Role::where('name', $roleName)->first();
+    
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role_id' => Role::where('name', 'User')->first()->id,
+            'role_id' => $role->id,
         ]);
         $token = $user->createToken('auth_token')->plainTextToken;
 
-
-        // Provera da li je email već zauzet
-        if (User::where('email', $request->email)->exists()) {
-            return response()->json(['message' => 'Email je već zauzet'], 400);
-        }
-
-        // Provera da li je lozinka dovoljno jaka
-        if (strlen($request->password) < 8) {
-            return response()->json(['message' => 'Lozinka mora imati minimum 8 karaktera'], 400);
-        }
-
-        // Provera da li je email u validnom formatu 
-        if (!filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
-            return response()->json(['message' => 'Email nije u validnom formatu'], 400);
+        if (!$user) {
+            return response()->json(['message' => 'Registration failed'], 500);
         }
         
-       if (!$user) {
-           return response()->json([
-               'error' => 'User not authenticated.'
-           ], 401);
-       }
-       
-       
        return response()->json([
         'message' => 'User registered successfully',
         'user' => $user,
         'token' => $token
          ], 201);
+
+    
 
     }
 

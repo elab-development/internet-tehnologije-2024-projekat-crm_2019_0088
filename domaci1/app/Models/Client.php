@@ -28,4 +28,10 @@ class Client extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+    public function scopeByUser($query, $userId)
+    {
+    return $query->where('created_by', $userId);
+    }
+
+
 }
