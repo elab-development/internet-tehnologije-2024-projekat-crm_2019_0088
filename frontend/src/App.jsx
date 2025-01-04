@@ -1,15 +1,18 @@
 import React from 'react';
-import Sidebar from './components/Sidebar';
-import MainContent from './components/MainContent';
-import './App.css';
 
-function App() {
+import './index.css';
+import { BrowserRouter as Router } from 'react-router-dom';
+
+import DashboardLayout from './components/layout/DashboardLayout';
+
+const App = () => {
   return (
-    <div className="app">
-      <Sidebar />
-      <MainContent />
-    </div>
+    <Router>
+      <div className="app">
+        <DashboardLayout />;
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;
