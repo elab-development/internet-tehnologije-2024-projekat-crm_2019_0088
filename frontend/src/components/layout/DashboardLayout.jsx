@@ -2,43 +2,11 @@ import React from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
+import Sidebar from './Sidebar';
 
 const DashboardLayout = () => {
   return (
     <div className="min-h-screen flex bg-gray-100">
-      <div className="w-64 bg-white shadow-lg">
-        {/* Basic Sidebar */}
-        <div className="p-4">
-          <h2 className="text-xl font-bold mb-4">CRM Dashboard</h2>
-          <nav>
-            <Link
-              to="/dashboard"
-              className="block py-2 text-gray-600 hover:text-gray-900"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/customers"
-              className="block py-2 text-gray-600 hover:text-gray-900"
-            >
-              Customers
-            </Link>
-            <Link
-              to="/sales"
-              className="block py-2 text-gray-600 hover:text-gray-900"
-            >
-              Sales
-            </Link>
-            <Link
-              to="/tasks"
-              className="block py-2 text-gray-600 hover:text-gray-900"
-            >
-              Tasks
-            </Link>
-          </nav>
-        </div>
-      </div>
-
       <main className="flex-1 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-6">
