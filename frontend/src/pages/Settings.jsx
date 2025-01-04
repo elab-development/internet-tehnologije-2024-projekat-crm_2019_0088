@@ -29,7 +29,7 @@ const SettingsPage = () => {
           <input
             type="text"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                       focus:border-indigo-500 focus:ring-indigo-500"
+                       focus:border-gray-700 focus:ring-gray-700"
             value={settings.companyName}
             onChange={(e) =>
               setSettings({
@@ -45,7 +45,7 @@ const SettingsPage = () => {
           </label>
           <select
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                       focus:border-indigo-500 focus:ring-indigo-500"
+                       focus:border-gray-700 focus:ring-gray-700"
             value={settings.timezone}
             onChange={(e) =>
               setSettings({
@@ -62,9 +62,9 @@ const SettingsPage = () => {
         </div>
         <button
           className="mt-4 inline-flex justify-center rounded-md border border-transparent 
-                     bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm 
-                     hover:bg-indigo-700 focus:outline-none focus:ring-2 
-                     focus:ring-indigo-500 focus:ring-offset-2 w-full sm:w-auto"
+                     bg-gray-800 py-2 px-4 text-sm font-medium text-white shadow-sm 
+                     hover:bg-gray-900 focus:outline-none focus:ring-2 
+                     focus:ring-gray-700 focus:ring-offset-2 w-full sm:w-auto"
         >
           Save Changes
         </button>
@@ -98,8 +98,8 @@ const SettingsPage = () => {
                 })
               }
               className={classNames(
-                enabled ? 'bg-indigo-600' : 'bg-gray-200',
-                'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                enabled ? 'bg-gray-800' : 'bg-gray-200',
+                'relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700'
               )}
             >
               <span
@@ -134,17 +134,17 @@ const SettingsPage = () => {
         </h1>
 
         <Tab.Group>
-          <Tab.List className="flex flex-wrap sm:flex-nowrap gap-2 sm:space-x-1 rounded-xl bg-indigo-900/20 p-1">
+          <Tab.List className="flex flex-wrap sm:flex-nowrap gap-2 sm:space-x-1 rounded-xl bg-gray-900/20 p-1">
             {Object.keys(categories).map((category) => (
               <Tab
                 key={category}
                 className={({ selected }) =>
                   classNames(
                     'w-full rounded-lg py-2 sm:py-2.5 text-sm font-medium leading-5',
-                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-indigo-400 focus:outline-none focus:ring-2',
+                    'ring-white ring-opacity-60 ring-offset-2 ring-offset-gray-400 focus:outline-none focus:ring-2',
                     selected
-                      ? 'bg-white shadow text-indigo-700'
-                      : 'text-indigo-400 hover:bg-white/[0.12] hover:text-indigo-600'
+                      ? 'bg-white shadow text-gray-900'
+                      : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-800'
                   )
                 }
               >
@@ -158,7 +158,7 @@ const SettingsPage = () => {
                 key={idx}
                 className={classNames(
                   'rounded-xl bg-white p-4 sm:p-6',
-                  'ring-white ring-opacity-60 ring-offset-2 ring-offset-indigo-400 focus:outline-none focus:ring-2'
+                  'ring-white ring-opacity-60 ring-offset-2 ring-offset-gray-400 focus:outline-none focus:ring-2'
                 )}
               >
                 {panel}

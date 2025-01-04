@@ -7,19 +7,26 @@ import Dashboard from './pages/Dasboard';
 import SettingsPage from './pages/Settings';
 import DashboardLayout from './components/layout/DashboardLayout';
 import Sidebar from './components/layout/Sidebar';
+import Clients from './pages/Clients';
 
 const App = () => {
   return (
     <Router>
-      <div>
-        <div>
+      <div className="flex h-screen overflow-hidden">
+        <div className="flex flex-col md:flex-row flex-1">
           <Sidebar />
-          <main>
+          <main className="flex-1 overflow-y-auto p-4">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/settings" element={<SettingsPage />} />
+
+              <Route path="/clients" element={<Clients />} />
+
+              <Route path="/settings" element={<SettingsPage />} />
+
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
-          </main>{' '}
+          </main>
         </div>
       </div>
     </Router>
