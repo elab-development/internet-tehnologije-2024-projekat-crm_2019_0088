@@ -39,17 +39,6 @@ const DashboardLayout = () => {
                         </button>
                       )}
                     </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
-                          className={`${
-                            active ? 'bg-blue-500 text-white' : 'text-gray-900'
-                          } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
-                        >
-                          Settings
-                        </button>
-                      )}
-                    </Menu.Item>
                   </div>
                 </Menu.Items>
               </Transition>
