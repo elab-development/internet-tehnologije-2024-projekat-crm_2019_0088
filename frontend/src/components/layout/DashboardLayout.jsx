@@ -1,7 +1,7 @@
 import React from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { data, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 
 const DashboardLayout = () => {
@@ -50,27 +50,43 @@ const DashboardLayout = () => {
               <h3 className="text-lg font-semibold text-gray-900">
                 Total Customers
               </h3>
-              <p className="text-3xl font-bold text-blue-600">1,234</p>
-              <p className="text-sm text-green-600">+14% from last month</p>
+              <p className="text-3xl font-bold text-gray-600">
+                {data?.totalCustomers || '1,234'}
+              </p>
+              <p className="text-sm text-green-600">
+                {data?.customerGrowth || '+14% from last month'}
+              </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
               <h3 className="text-lg font-semibold text-gray-900">
                 Total Sales
               </h3>
-              <p className="text-3xl font-bold text-blue-600">$45,678</p>
-              <p className="text-sm text-green-600">+7.5% from last month</p>
+              <p className="text-3xl font-bold text-gray-600">
+                {data?.totalSales || '$45,678'}
+              </p>
+              <p className="text-sm text-green-600">
+                {data?.salesGrowth || '+7.5% from last month'}
+              </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
               <h3 className="text-lg font-semibold text-gray-900">
                 Active Deals
               </h3>
-              <p className="text-3xl font-bold text-blue-600">89</p>
-              <p className="text-sm text-green-600">+2.5% from last month</p>
+              <p className="text-3xl font-bold text-gray-600">
+                {data?.activeDeals || '89'}
+              </p>
+              <p className="text-sm text-green-600">
+                {data?.dealsGrowth || '+2.5% from last month'}
+              </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
               <h3 className="text-lg font-semibold text-gray-900">Tasks</h3>
-              <p className="text-3xl font-bold text-blue-600">156</p>
-              <p className="text-sm text-green-600">+12% from last month</p>
+              <p className="text-3xl font-bold text-gray-600">
+                {data?.totalTasks || '156'}
+              </p>
+              <p className="text-sm text-green-600">
+                {data?.tasksGrowth || '+12% from last month'}
+              </p>
             </div>
 
             {/* Charts Section */}
@@ -91,44 +107,10 @@ const DashboardLayout = () => {
               </div>
             </div>
 
-            {/* Recent Activities */}
-            <div className="col-span-1 lg:col-span-2 bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Recent Activities
-              </h2>
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded">
-                  <p className="text-gray-600">New customer signed up</p>
-                  <p className="text-sm text-gray-500">2 hours ago</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded">
-                  <p className="text-gray-600">Sales target achieved</p>
-                  <p className="text-sm text-gray-500">5 hours ago</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Tasks List */}
-            <div className="col-span-1 lg:col-span-2 bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Pending Tasks
-              </h2>
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded">
-                  <p className="text-gray-600">Follow up with clients</p>
-                  <p className="text-sm text-gray-500">Due today</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded">
-                  <p className="text-gray-600">Prepare monthly report</p>
-                  <p className="text-sm text-gray-500">Due tomorrow</p>
-                </div>
-              </div>
-            </div>
-
             {/* Recent Customers Table */}
             <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-white p-6 rounded-lg shadow">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Recent Customers
+                Recent Clients
               </h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
