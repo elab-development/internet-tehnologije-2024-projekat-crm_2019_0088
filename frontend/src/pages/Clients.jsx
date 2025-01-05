@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import ButtonClose from '../components/common/ButtonClose';
@@ -7,10 +7,10 @@ import FilterButton from '../components/common/FilterButton';
 import OptionButton from '../components/common/OptionButton';
 import AddClientButton from '../components/features/clients/AddClientButton';
 import SortButton from '../components/common/SortButton';
-import { Search } from 'lucide-react';
+import { PlusIcon, Search } from 'lucide-react';
 
-const Clients = () => {
-  const initialClients = [
+const ClientsPage = () => {
+  const [clients, setClients] = useState([
     {
       id: 1,
       name: 'Acme Corp',
@@ -18,7 +18,7 @@ const Clients = () => {
       phone: '123-456-7890',
       company: 'Acme Holdings',
       createdBy: 'John Doe',
-      timestamp: '2023-01-01',
+      timestamp: '2023/01/01',
       status: 'Active',
     },
     {
@@ -28,7 +28,7 @@ const Clients = () => {
       phone: '234-567-8901',
       company: 'Global Ltd',
       createdBy: 'Jane Smith',
-      timestamp: '2023-02-15',
+      timestamp: '2023/02/15',
       status: 'Active',
     },
     {
@@ -38,7 +38,7 @@ const Clients = () => {
       phone: '345-678-9012',
       company: 'Tech Inc',
       createdBy: 'Mike Johnson',
-      timestamp: '2023-03-20',
+      timestamp: '2023/03/20',
       status: 'Inactive',
     },
     {
@@ -48,7 +48,7 @@ const Clients = () => {
       phone: '456-789-0123',
       company: 'Digital Corp',
       createdBy: 'Sarah Wilson',
-      timestamp: '2023-04-05',
+      timestamp: '2023/04/05',
       status: 'Active',
     },
     {
@@ -58,7 +58,7 @@ const Clients = () => {
       phone: '567-890-1234',
       company: 'Future Ltd',
       createdBy: 'Tom Brown',
-      timestamp: '2023-05-10',
+      timestamp: '2023/05/10',
       status: 'Active',
     },
     {
@@ -68,7 +68,7 @@ const Clients = () => {
       phone: '678-901-2345',
       company: 'Smart Inc',
       createdBy: 'Lisa Davis',
-      timestamp: '2023-06-15',
+      timestamp: '2023/06/15',
       status: 'Inactive',
     },
     {
@@ -78,7 +78,7 @@ const Clients = () => {
       phone: '789-012-3456',
       company: 'Innovative Corp',
       createdBy: 'David Miller',
-      timestamp: '2023-07-20',
+      timestamp: '2023/07/20',
       status: 'Active',
     },
     {
@@ -88,7 +88,7 @@ const Clients = () => {
       phone: '890-123-4567',
       company: 'Premier Ltd',
       createdBy: 'Emma White',
-      timestamp: '2023-08-25',
+      timestamp: '2023/08/25',
       status: 'Active',
     },
     {
@@ -98,7 +98,7 @@ const Clients = () => {
       phone: '901-234-5678',
       company: 'Elite Inc',
       createdBy: 'Chris Taylor',
-      timestamp: '2023-09-30',
+      timestamp: '2023/09/30',
       status: 'Inactive',
     },
     {
@@ -108,17 +108,72 @@ const Clients = () => {
       phone: '012-345-6789',
       company: 'Peak Corp',
       createdBy: 'Amanda Black',
-      timestamp: '2023-10-05',
+      timestamp: '2023/10/05',
       status: 'Active',
     },
-  ];
+  ]);
 
-  const [clients, setClients] = useState(initialClients);
+  const [showModal, setShowModal] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchEmail, setSearchEmail] = useState('');
+  const [newClient, setNewClient] = useState({
+    clientName: '',
+    email: '',
+    phone: '',
+    company: '',
+    timestamp: '',
+  });
 
+  useEffect(() => {
+    const savedClients = JSON.parse(localStorage.getItem('clients'));
+    if (savedClients) {
+      setClients(savedClients);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('clients', JSON.stringify(clients));
+  }, [clients]);
+
+  const addClient = (newClient) => {
+    setClients([...clients, newClient]);
+  };
+  const handleAddClient = () => {
+    const client = {
+      id: clients.length + 1,
+      name: newClient.clientName,
+      email: newClient.email,
+      phone: newClient.phone,
+      company: newClient.company,
+      createdBy: 'Current User',
+      timestamp: new Date().toISOString().split('T')[0],
+      status: 'Active',
+    };
+
+    if (
+      !newClient.clientName ||
+      !newClient.email ||
+      !newClient.phone ||
+      !newClient.company
+    ) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    setClients([...clients, client]);
+
+    setNewClient({
+      clientName: '',
+      email: '',
+      phone: '',
+      company: '',
+      timestamp: '',
+    });
+
+    setShowModal(false);
+  };
   function closeModal() {
     setIsOpen(false);
   }
@@ -134,7 +189,7 @@ const Clients = () => {
 
   function handleSearch() {
     const searchTerm = searchEmail.toLowerCase();
-    const foundClients = initialClients.filter((client) =>
+    const foundClients = clients.filter((client) =>
       Object.values(client).some((value) =>
         value.toString().toLowerCase().includes(searchTerm)
       )
@@ -144,12 +199,8 @@ const Clients = () => {
       setClients(foundClients);
     } else {
       alert('No matching clients found!');
-      setClients(initialClients);
+      setClients(clients);
     }
-  }
-
-  function handleAddClient(newClient) {
-    setClients([...clients, newClient]);
   }
 
   function handleEdit(client) {
@@ -194,14 +245,20 @@ const Clients = () => {
                 <OptionButton />
 
                 {/* ADD BUTTON */}
-                <AddClientButton />
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                >
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  New Client
+                </button>
                 {/* SEARCH BUTTON */}
                 <button
                   type="button"
                   onClick={() => {
                     const searchTerm = prompt('Enter search term:');
                     if (searchTerm) {
-                      const foundClients = initialClients.filter((client) =>
+                      const foundClients = clients.filter((client) =>
                         Object.values(client).some((value) =>
                           value
                             .toString()
@@ -213,7 +270,7 @@ const Clients = () => {
                         setClients(foundClients);
                       } else {
                         alert('No matching clients found!');
-                        setClients(initialClients);
+                        setClients(clients);
                       }
                     }
                   }}
@@ -223,6 +280,131 @@ const Clients = () => {
                   Search
                 </button>
               </div>
+              {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                  <div className="bg-white rounded-lg max-w-md w-full p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-medium">Add New Client</h2>
+                      <button
+                        onClick={() => setShowModal(false)}
+                        className="text-gray-400 hover:text-gray-500"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={newClient.name}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              name: e.target.value,
+                            })
+                          }
+                          placeholder="Enter client name"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={newClient.email}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              email: e.target.value,
+                            })
+                          }
+                          placeholder="Enter email address"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Phone
+                        </label>
+                        <input
+                          type="tel"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={newClient.phone}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              phone: e.target.value,
+                            })
+                          }
+                          placeholder="Enter phone number"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Company
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={newClient.company}
+                          onChange={(e) =>
+                            setNewClient({
+                              ...newClient,
+                              company: e.target.value,
+                            })
+                          }
+                          placeholder="Enter company name"
+                          required
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          if (
+                            !newClient.name ||
+                            !newClient.email ||
+                            !newClient.phone ||
+                            !newClient.company
+                          ) {
+                            alert('Please fill in all fields');
+                            return;
+                          }
+                          const client = {
+                            ...newClient,
+                            id: clients.length + 1,
+                            createdBy: 'Current User',
+                            timestamp: new Date().toLocaleDateString(),
+                            status: 'Active',
+                          };
+                          setClients([...clients, client]);
+                          setNewClient({
+                            name: '',
+                            email: '',
+                            phone: '',
+                            company: '',
+                          });
+                          setShowModal(false);
+                        }}
+                        className="w-full px-4 py-2 text-white rounded-md bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                      >
+                        Add Client
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}{' '}
             </div>
           </div>
         </div>
@@ -307,12 +489,7 @@ const Clients = () => {
                         >
                           View
                         </button>
-                        <button
-                          onClick={() => handleEdit(client)}
-                          className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors"
-                        >
-                          Edit
-                        </button>
+
                         <button
                           onClick={() => handleDelete(client.id)}
                           className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
@@ -414,4 +591,4 @@ const Clients = () => {
   );
 };
 
-export default Clients;
+export default ClientsPage;

@@ -9,6 +9,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import Sidebar from './components/layout/Sidebar';
 import Clients from './pages/Clients';
 import InvoicePage from './pages/Invoices';
+import ClientsPage from './pages/Clients';
 
 const App = () => {
   return (
@@ -21,7 +22,7 @@ const App = () => {
               <Route path="/" element={<Dashboard />} />
               <Route path="/settings" element={<SettingsPage />} />
 
-              <Route path="/clients" element={<Clients />} />
+              <Route path="/clients" element={<ClientsPage />} />
 
               <Route path="/invoices" element={<InvoicePage />} />
 
