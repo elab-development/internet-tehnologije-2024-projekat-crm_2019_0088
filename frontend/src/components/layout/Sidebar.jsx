@@ -58,14 +58,6 @@ const Sidebar = () => {
               </Link>
 
               <Link
-                to="/profile"
-                className="flex items-center space-x-3 w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-800 hover:text-white"
-              >
-                <FaUser className="text-xl" />
-                <span className="font-medium">Profile</span>
-              </Link>
-
-              <Link
                 to="/settings"
                 className="flex items-center space-x-3 w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-800 hover:text-white"
               >

@@ -8,6 +8,7 @@ import SettingsPage from './pages/Settings';
 import DashboardLayout from './components/layout/DashboardLayout';
 import Sidebar from './components/layout/Sidebar';
 import Clients from './pages/Clients';
+import InvoicePage from './pages/Invoices';
 
 const App = () => {
   return (
@@ -22,7 +23,7 @@ const App = () => {
 
               <Route path="/clients" element={<Clients />} />
 
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/invoices" element={<InvoicePage />} />
 
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
