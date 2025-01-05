@@ -10,11 +10,6 @@ function Dasboard() {
       <div className="w-full md:w-64 flex-shrink-0 bg-white shadow-lg">
         {/* Basic Sidebar */}
         <Sidebar />
-        <main className="flex-1 ml-64 p-8">
-          <Routes>
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </main>{' '}
       </div>
       <div className="flex-1 p-4 overflow-auto">
         <div className="container mx-auto">

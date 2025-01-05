@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { PlusIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react';
 
@@ -95,7 +95,71 @@ const InvoicePage = () => {
       isPaid: true,
       createdAt: '2025-01-25',
     },
+    {
+      id: 11,
+      invoiceNumber: 'INV-011',
+      client: 'New Tech Solutions',
+      amount: 2500.0,
+      dueDate: '2025-03-20',
+      isPaid: false,
+      createdAt: '2025-01-28',
+    },
   ]);
+  // Ucitavanje racuna iz localStorage-a kada se komponenta mountuje
+  useEffect(() => {
+    const savedInvoices = JSON.parse(localStorage.getItem('invoices'));
+    if (savedInvoices) {
+      setInvoices(savedInvoices);
+    }
+  }, []);
+
+  // Cuvanje racuna u localStorage svaki put kada se promeni niz racuna
+  useEffect(() => {
+    localStorage.setItem('invoices', JSON.stringify(invoices));
+  }, [invoices]);
+
+  const [showModal, setShowModal] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [newInvoice, setNewInvoice] = useState({
+    invoiceNumber: '',
+    client: '',
+    amount: '',
+    dueDate: '',
+  });
+
+  const handleAddInvoice = () => {
+    // Kreiranje novog racuna
+    const invoice = {
+      id: invoices.length + 1, // Automatski ID
+      ...newInvoice, // Podaci uneti u formu
+      isPaid: false, // Novi računi su uvek "neplaceni" na pocetku
+      createdAt: new Date().toISOString().split('T')[0], // Datum kreiranja
+      amount: parseFloat(newInvoice.amount), // Pretvara iz stringa u broj
+    };
+    // Validacija podataka
+    if (
+      !newInvoice.invoiceNumber ||
+      !newInvoice.client ||
+      !newInvoice.amount ||
+      !newInvoice.dueDate
+    ) {
+      alert('Please fill in all fields');
+      return;
+    }
+    // Dodavanje novog racuna u listu
+    setInvoices([...invoices, invoice]);
+
+    // Resetovanje forme
+    setNewInvoice({
+      invoiceNumber: '',
+      client: '',
+      amount: '',
+      dueDate: '',
+    });
+
+    // Zatvaranje modala
+    setShowModal(false);
+  };
   const togglePaymentStatus = (id) => {
     setInvoices(
       invoices.map((invoice) =>
@@ -107,10 +171,10 @@ const InvoicePage = () => {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Invoice Management</h1>
+        <h1 className="text-3xl font-bold">Invoices</h1>
 
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => setShowModal(true)}
           className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
         >
           <PlusIcon className="w-4 h-4 mr-2" />
@@ -118,6 +182,96 @@ const InvoicePage = () => {
         </button>
       </div>
 
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-medium">Create New Invoice</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Invoice Number
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={newInvoice.invoiceNumber}
+                  onChange={(e) =>
+                    setNewInvoice({
+                      ...newInvoice,
+                      invoiceNumber: e.target.value,
+                    })
+                  }
+                  placeholder="INV-001"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Client Name
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={newInvoice.client}
+                  onChange={(e) =>
+                    setNewInvoice({ ...newInvoice, client: e.target.value })
+                  }
+                  placeholder="Client name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={newInvoice.amount}
+                  onChange={(e) =>
+                    setNewInvoice({ ...newInvoice, amount: e.target.value })
+                  }
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={newInvoice.dueDate}
+                  onChange={(e) =>
+                    setNewInvoice({ ...newInvoice, dueDate: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <button
+                onClick={handleAddInvoice}
+                className="w-full px-4 py-2  text-white rounded-md bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              >
+                Add Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

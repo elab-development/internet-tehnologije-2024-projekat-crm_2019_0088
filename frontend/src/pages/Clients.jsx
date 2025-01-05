@@ -148,6 +148,10 @@ const Clients = () => {
     }
   }
 
+  function handleAddClient(newClient) {
+    setClients([...clients, newClient]);
+  }
+
   function handleEdit(client) {
     // Implement edit logic here
     console.log('Editing client:', client);
