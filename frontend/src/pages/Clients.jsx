@@ -7,7 +7,7 @@ import FilterButton from '../components/common/FilterButton';
 import OptionButton from '../components/common/OptionButton';
 import AddClientButton from '../components/features/clients/AddClientButton';
 import SortButton from '../components/common/SortButton';
-import { PlusIcon, Search } from 'lucide-react';
+import { ArrowUpDown, PlusIcon, Search } from 'lucide-react';
 
 const ClientsPage = () => {
   const [clients, setClients] = useState([
@@ -234,16 +234,8 @@ const ClientsPage = () => {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center sm:justify-end">
-                {/*  FILTER BUTTON */}
-                <FilterButton />
-
                 {/* SORT BUTTON */}
-
-                <SortButton />
-
-                {/* OPTION BUTTON */}
-                <OptionButton />
-
+                <SortButton clients={clients} setClients={setClients} />
                 {/* ADD BUTTON */}
                 <button
                   onClick={() => setShowModal(true)}

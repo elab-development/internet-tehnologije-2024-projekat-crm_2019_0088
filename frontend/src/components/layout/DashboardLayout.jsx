@@ -7,24 +7,6 @@ import Chart from '../features/analytics/Chart';
 import CrmChart from '../features/analytics/crmChart';
 
 const DashboardLayout = () => {
-  const [btcData, setBtcData] = React.useState(null);
-
-  React.useEffect(() => {
-    const fetchBtcData = async () => {
-      try {
-        const response = await fetch(
-          'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30&interval=daily'
-        );
-        const data = await response.json();
-        setBtcData(data);
-      } catch (error) {
-        console.error('Error fetching BTC data:', error);
-      }
-    };
-
-    fetchBtcData();
-  }, []);
-
   return (
     <div className="min-h-screen flex bg-gray-100">
       <main className="flex-1 py-6">

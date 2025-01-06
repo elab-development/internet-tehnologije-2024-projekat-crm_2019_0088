@@ -1,17 +1,44 @@
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDown } from 'lucide-react';
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 
-function SortButton() {
+function SortButton({ clients, setClients }) {
+  const [currentSort, setCurrentSort] = useState('nameAsc');
+
+  const sortClients = (sortType) => {
+    const sortedClients = [...clients].sort((a, b) => {
+      switch (sortType) {
+        case 'nameAsc':
+          return a.name.localeCompare(b.name);
+        case 'nameDesc':
+          return b.name.localeCompare(a.name);
+        case 'newest':
+          return new Date(b.timestamp) - new Date(a.timestamp);
+        case 'oldest':
+          return new Date(a.timestamp) - new Date(b.timestamp);
+        default:
+          return 0;
+      }
+    });
+
+    setClients(sortedClients);
+    setCurrentSort(sortType);
+  };
+
   return (
     <div>
-      {' '}
       <Menu
         as="div"
         className="relative inline-block text-left w-full sm:w-auto"
       >
         <Menu.Button className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 w-full justify-center">
-          Sort
+          {currentSort === 'nameAsc'
+            ? 'Name A-Z'
+            : currentSort === 'nameDesc'
+            ? 'Name Z-A'
+            : currentSort === 'newest'
+            ? 'Newest first'
+            : 'Oldest first'}
           <ChevronDown className="w-4 h-4 ml-2" />
         </Menu.Button>
         <Transition
@@ -28,9 +55,12 @@ function SortButton() {
               <Menu.Item>
                 {({ active }) => (
                   <button
+                    onClick={() => sortClients('nameAsc')}
                     className={`${
                       active ? 'bg-gray-100' : ''
-                    } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
+                    } block px-4 py-2 text-sm text-gray-700 w-full text-left ${
+                      currentSort === 'nameAsc' ? 'bg-gray-50' : ''
+                    }`}
                   >
                     Name A-Z
                   </button>
@@ -39,33 +69,14 @@ function SortButton() {
               <Menu.Item>
                 {({ active }) => (
                   <button
+                    onClick={() => sortClients('nameDesc')}
                     className={`${
                       active ? 'bg-gray-100' : ''
-                    } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
+                    } block px-4 py-2 text-sm text-gray-700 w-full text-left ${
+                      currentSort === 'nameDesc' ? 'bg-gray-50' : ''
+                    }`}
                   >
                     Name Z-A
-                  </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    className={`${
-                      active ? 'bg-gray-100' : ''
-                    } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                  >
-                    Newest first
-                  </button>
-                )}
-              </Menu.Item>
-              <Menu.Item>
-                {({ active }) => (
-                  <button
-                    className={`${
-                      active ? 'bg-gray-100' : ''
-                    } block px-4 py-2 text-sm text-gray-700 w-full text-left`}
-                  >
-                    Oldest first
                   </button>
                 )}
               </Menu.Item>
