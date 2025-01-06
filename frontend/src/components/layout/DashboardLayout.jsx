@@ -3,8 +3,28 @@ import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { data, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Chart from '../features/analytics/Chart';
+import CrmChart from '../features/analytics/crmChart';
 
 const DashboardLayout = () => {
+  const [btcData, setBtcData] = React.useState(null);
+
+  React.useEffect(() => {
+    const fetchBtcData = async () => {
+      try {
+        const response = await fetch(
+          'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30&interval=daily'
+        );
+        const data = await response.json();
+        setBtcData(data);
+      } catch (error) {
+        console.error('Error fetching BTC data:', error);
+      }
+    };
+
+    fetchBtcData();
+  }, []);
+
   return (
     <div className="min-h-screen flex bg-gray-100">
       <main className="flex-1 py-6">
@@ -15,66 +35,10 @@ const DashboardLayout = () => {
             </h1>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Stats Cards */}
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Total Customers
-              </h3>
-              <p className="text-3xl font-bold text-gray-600">
-                {data?.totalCustomers || '1,234'}
-              </p>
-              <p className="text-sm text-green-600">
-                {data?.customerGrowth || '+14% from last month'}
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Total Sales
-              </h3>
-              <p className="text-3xl font-bold text-gray-600">
-                {data?.totalSales || '$45,678'}
-              </p>
-              <p className="text-sm text-green-600">
-                {data?.salesGrowth || '+7.5% from last month'}
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Active Deals
-              </h3>
-              <p className="text-3xl font-bold text-gray-600">
-                {data?.activeDeals || '89'}
-              </p>
-              <p className="text-sm text-green-600">
-                {data?.dealsGrowth || '+2.5% from last month'}
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
-              <h3 className="text-lg font-semibold text-gray-900">Tasks</h3>
-              <p className="text-3xl font-bold text-gray-600">
-                {data?.totalTasks || '156'}
-              </p>
-              <p className="text-sm text-green-600">
-                {data?.tasksGrowth || '+12% from last month'}
-              </p>
-            </div>
+            {/* Chart Sekcija */}
 
-            {/* Charts Section */}
-            <div className="col-span-1 lg:col-span-2 bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Sales Overview
-              </h2>
-              <div className="h-64 bg-gray-100 rounded flex items-center justify-center">
-                <p className="text-gray-500">Sales Chart Coming Soon</p>
-              </div>
-            </div>
-            <div className="col-span-1 lg:col-span-2 bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Lead Generation
-              </h2>
-              <div className="h-64 bg-gray-100 rounded flex items-center justify-center">
-                <p className="text-gray-500">Leads Chart Coming Soon</p>
-              </div>
+            <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-white p-6 rounded-lg shadow">
+              <CrmChart className="w-full h-full" />
             </div>
 
             {/* Recent Customers Table */}
@@ -97,6 +61,8 @@ const DashboardLayout = () => {
                       </th>
                     </tr>
                   </thead>
+                  {/* CLIENT TABEL:A */}
+
                   <tbody className="bg-white divide-y divide-gray-200">
                     <tr>
                       <td className="px-6 py-4 whitespace-nowrap">John Doe</td>
