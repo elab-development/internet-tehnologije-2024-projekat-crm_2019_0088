@@ -10,11 +10,16 @@ class ClientController extends Controller
   
     public function index()
     {
+
+       
+
         $clients = Client::with(['contacts', 'invoices'])
             ->when(!auth()->user()->hasRole('Admin'), function ($query) {
                 return $query->where('created_by', auth()->id());
             })
-            ->get();
+            ->orderBy('created_at', 'desc')  // Add ordering
+            ->paginate(10);  // Add pagination
+    
             
         return response()->json($clients);
 
@@ -34,7 +39,7 @@ class ClientController extends Controller
         $validated['created_by'] = auth()->id();
         $client = Client::create($validated);
 
-        return response()->json($client, 201);
+        return response()->json($client->load(['contacts', 'invoices']), 201);
     }
 
     public function update(Request $request, Client $client)

@@ -18,8 +18,13 @@ return new class extends Migration
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->string('contact_name');
             $table->string('contact_email')->nullable();
-            $table->string('contact_phone')->nullable();
+            $table->string('contact_phone',20)->nullable();
             $table->timestamps();
+            $table->softDeletes();
+    
+            $table->index('client_id');
+            $table->index('contact_email');
+            $table->unique(['client_id', 'contact_email']);
         });
         
     }

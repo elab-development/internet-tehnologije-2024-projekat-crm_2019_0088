@@ -24,6 +24,12 @@ return new class extends Migration
             $table->enum('status', ['paid', 'unpaid', 'overdue'])->default('unpaid');
             $table->text('notes')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+    
+            $table->index('client_id');
+            $table->index('invoice_date');
+            $table->index('due_date');
+            $table->index('status');
         });
     }
 

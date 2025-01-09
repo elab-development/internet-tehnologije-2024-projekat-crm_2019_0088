@@ -16,8 +16,15 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('description')->nullable();
             $table->timestamps();
-        });
+            
+            // Dodati default Role za Admin i User
+            DB::table('roles')->insert([
+                ['name' => 'Admin', 'description' => 'Administrator role'],
+                ['name' => 'User', 'description' => 'Standard user role'],
+            ]);
+                });
     }
 
     /**

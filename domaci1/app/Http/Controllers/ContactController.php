@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\Client;
 use Illuminate\Http\Request;
 
 class ContactController extends Controller
@@ -10,7 +11,16 @@ class ContactController extends Controller
    
     public function index()
     {
-        return response()->json(Contact::all());
+       
+        $contacts = Contact::with('client')  // Add client relationship
+            ->when(!auth()->user()->hasRole('Admin'), function ($query) {
+                return $query->whereHas('client', function ($q) {
+                    $q->where('created_by', auth()->id());
+                });
+            })
+            ->paginate(10);
+
+        return response()->json($contacts);
     }
 
     
@@ -33,10 +43,14 @@ class ContactController extends Controller
 
     public function store(Request $request, Contact $contact)
     {
-        $this->validateContact($request);
+        $validated = $this->validateContact($request);
+        
+        // Check if user has permission to add contact to this client
+        $client = Client::findOrFail($validated['client_id']);
+        $this->authorize('update', $client);
 
-        $contact = Contact::create($request->all());
-        return response()->json($contact, 201);
+        $contact = Contact::create($validated);
+        return response()->json($contact->load('client'), 201);
     }
 
     public function update(Request $request, Contact $contact)
@@ -51,13 +65,10 @@ class ContactController extends Controller
     
 
 
-    public function show($id)
+    public function show(Contact $contact)
     {
-        $contact = Contact::find($id);
-        if (!$contact) {
-            return response()->json(['message' => 'Contact not found'], 404);
-        }
-        return response()->json($contact);
+        $this->authorize('view', $contact->client);
+        return response()->json($contact->load('client'));
     }
 
 }
