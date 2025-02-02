@@ -9,12 +9,12 @@ class InvoiceController extends Controller
 {
     public function index()
     {
-        return response()->json(Invoice::with('client')->get());
+        return response()->json(Invoice::with('client')->paginate(10));
     }
 
     public function show($invoiceId)
     {
-        $invoice = Invoice::with('clients')->findOrFail($invoiceId);
+        $invoice = Invoice::with('client')->findOrFail($invoiceId);
         return response()->json($invoice);
     }
 
@@ -22,7 +22,7 @@ class InvoiceController extends Controller
     {
         $validated = $request->validate([
             'invoice_number' => 'required|unique:invoices',
-            'client_id' => 'required|exists:client,id',
+            'client_id' => 'required|exists:clients,id',
             'invoice_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:invoice_date',
             'total_amount' => 'required|numeric|min:0',
@@ -39,7 +39,7 @@ class InvoiceController extends Controller
 
         $validated = $request->validate([
             'invoice_number' => 'required|unique:invoices,invoice_number,' . $invoice->id,
-            'client_id' => 'required|exists:client,id',
+            'client_id' => 'required|exists:clients,id',
             'invoice_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:invoice_date',
             'total_amount' => 'required|numeric|min:0',

@@ -7,11 +7,11 @@ use App\Http\Controllers\InvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register'])->name('register');
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -42,4 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/clients', [ClientController::class, 'store']);
         Route::put('/clients/{client}', [ClientController::class, 'update']);
     });
+
+    // Ako si implementirao kreiranje kontakta, definiši i njegovu rutu:
+    Route::post('/contacts', [ContactController::class, 'store']);
 });

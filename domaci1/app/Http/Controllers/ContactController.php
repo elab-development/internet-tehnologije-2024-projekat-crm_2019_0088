@@ -11,9 +11,8 @@ class ContactController extends Controller
    
     public function index()
     {
-       
-        $contacts = Contact::with('client')  // Add client relationship
-            ->when(!auth()->user()->hasRole('Admin'), function ($query) {
+        $contacts = Contact::with('client')
+            ->when(auth()->check() && !auth()->user()->hasRole('Admin'), function ($query) {
                 return $query->whereHas('client', function ($q) {
                     $q->where('created_by', auth()->id());
                 });
@@ -26,40 +25,43 @@ class ContactController extends Controller
     
     public function create()
     {
-        return response()->json(Contact::all());
+        $contacts = Contact::with('client')->paginate(10);
+        return response()->json($contacts);
     }
 
    
     private function validateContact(Request $request)
     {
-    return $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'contact_name' => 'required|string',
-        'contact_email' => 'nullable|string|email',
-        'contact_phone' => 'nullable|string',
-    ]);
+        return $request->validate([
+            'client_id'     => 'required|exists:clients,id',
+            'contact_name'  => 'required|string',
+            'contact_email' => 'nullable|string|email',
+            'contact_phone' => 'nullable|string',
+        ]);
     }
 
 
-    public function store(Request $request, Contact $contact)
+    public function store(Request $request)
     {
         $validated = $this->validateContact($request);
         
-        // Check if user has permission to add contact to this client
+        // Provera da li korisnik ima pravo da ažurira klijenta kome se dodaje kontakt
         $client = Client::findOrFail($validated['client_id']);
         $this->authorize('update', $client);
 
         $contact = Contact::create($validated);
-        return response()->json($contact->load('client'), 201);
+        $contact->load('client');
+
+        return response()->json($contact, 201);
     }
 
     public function update(Request $request, Contact $contact)
     {
-       
         $this->validateContact($request);
     
-       
         $contact->update($request->all());
+        $contact->load('client');
+        
         return response()->json($contact);
     }
     
@@ -67,8 +69,11 @@ class ContactController extends Controller
 
     public function show(Contact $contact)
     {
+        // Učitavamo relaciju ukoliko nije već učitana
+        $contact->loadMissing('client');
         $this->authorize('view', $contact->client);
-        return response()->json($contact->load('client'));
+        
+        return response()->json($contact);
     }
 
 }
