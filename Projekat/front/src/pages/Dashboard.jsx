@@ -1,10 +1,8 @@
 import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Sidebar from '../components/layout/Sidebar';
-import { Route, Routes } from 'react-router-dom';
-import SettingsPage from './Settings';
 
-function Dasboard() {
+function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-100">
       <div className="w-full md:w-64 flex-shrink-0 bg-white shadow-lg">
@@ -20,4 +18,4 @@ function Dasboard() {
   );
 }
 
-export default Dasboard;
+export default Dashboard;

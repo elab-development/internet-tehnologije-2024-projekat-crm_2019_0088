@@ -5,7 +5,7 @@ import ButtonClose from '../components/common/ButtonClose';
 import SearchButton from '../components/common/SearchButton';
 import FilterButton from '../components/common/FilterButton';
 import OptionButton from '../components/common/OptionButton';
-import AddClientButton from '../components/features/clients/AddClientButton';
+import AddClientButton from '../components/common/AddClientButton';
 import SortButton from '../components/common/SortButton';
 import { ArrowUpDown, PlusIcon, Search } from 'lucide-react';
 

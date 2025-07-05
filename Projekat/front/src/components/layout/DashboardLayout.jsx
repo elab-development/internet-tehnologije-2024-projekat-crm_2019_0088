@@ -3,8 +3,6 @@ import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { data, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Chart from '../features/analytics/Chart';
-import CrmChart from '../features/analytics/crmChart';
 
 const DashboardLayout = () => {
   return (
@@ -18,10 +16,6 @@ const DashboardLayout = () => {
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Chart Sekcija */}
-
-            <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-white p-6 rounded-lg shadow">
-              <CrmChart className="w-full h-full" />
-            </div>
 
             {/* Recent Customers Table */}
             <div className="col-span-1 sm:col-span-2 lg:col-span-4 bg-white p-6 rounded-lg shadow">

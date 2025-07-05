@@ -3,9 +3,9 @@ import React from 'react';
 import './index.css';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import Dashboard from './pages/Dasboard';
+import Dashboard from './pages/Dashboard';
 
-import DashboardLayout from './components/Dashboard';
+import DashboardLayout from './components/layout/DashboardLayout';
 import Sidebar from './components/layout/Sidebar';
 import Clients from './pages/Clients';
 import InvoicePage from './pages/Invoices';
