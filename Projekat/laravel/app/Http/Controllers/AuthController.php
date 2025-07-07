@@ -40,7 +40,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Uspješno ste se registrovali',
+            'message' => 'Bravo',
             'user' => $user,
             'token' => $token,
         ], 201);
@@ -72,7 +72,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Uspješno ste se prijavili',
+            'message' => 'Bravo',
             'user' => $user,
             'token' => $token,
         ]);
@@ -84,7 +84,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Uspješno ste se odjavili'
+            'message' => 'Zbogom'
         ]);
     }
 
