@@ -1,49 +1,48 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClientController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\ContactController;
-// Auth routes
+use App\Http\Controllers\InvoiceController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Authenticated user routes
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']);
 
-    // Client resource routes
-    Route::get('/clients', [ClientController::class, 'index']);
-    Route::post('/clients', [ClientController::class, 'store']);
-    Route::get('/clients/{id}', [ClientController::class, 'show']);
-    Route::put('/clients/{id}', [ClientController::class, 'update']);
-    Route::delete('/clients/{id}', [ClientController::class, 'destroy']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-    // Invoice resource routes
-    Route::get('/invoices', [InvoiceController::class, 'index']);
-    Route::post('/invoices', [InvoiceController::class, 'store']);
-    Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
-    Route::put('/invoices/{id}', [InvoiceController::class, 'update']);
-    Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
-
-    // Additional routes needed to connect the database with the frontend:
-
-    // User resource routes (for user management)
-  
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{id}', [UserController::class, 'show']);
-    Route::put('/users/{id}', [UserController::class, 'update']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
-    // (Optional) If you want to manage contacts related to clients:
+    // Klijenti API rute
+    Route::apiResource('clients', ClientController::class);
+    Route::get('clients/{client}/contacts', [ClientController::class, 'getContacts'])->name('clients.contacts');
+    Route::get('clients/{client}/invoices', [ClientController::class, 'getInvoices'])->name('clients.invoices');
     
-    Route::get('/contacts', [ContactController::class, 'index']);
+    // Kontakti API rute
+    Route::apiResource('contacts', ContactController::class);
+    
+    // Fakture API rute
+    Route::apiResource('invoices', InvoiceController::class);
+
+    // Admin samo rute
+    Route::middleware('role:Admin')->group(function () {
+        Route::get('/users', [AuthController::class, 'index']);
+        Route::get('/users/{user}', [AuthController::class, 'show']);
+        Route::put('/users/{user}', [AuthController::class, 'update']);
+        Route::delete('/users/{user}', [AuthController::class, 'destroy']);
+        Route::delete('/clients/{client}', [ClientController::class, 'destroy']);
+    });
+
+    // User samo rute
+    Route::middleware('role:User')->group(function () {
+        Route::post('/clients', [ClientController::class, 'store']);
+        Route::put('/clients/{client}', [ClientController::class, 'update']);
+    });
+
+    // Ako si implementirao kreiranje kontakta, definiši i njegovu rutu:
     Route::post('/contacts', [ContactController::class, 'store']);
-    Route::get('/contacts/{id}', [ContactController::class, 'show']);
-    Route::put('/contacts/{id}', [ContactController::class, 'update']);
-    Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
 });

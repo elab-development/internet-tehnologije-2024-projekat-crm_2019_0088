@@ -15,5 +15,6 @@ class VerifyCsrfToken extends Middleware
         'api/*',
         'api/login',
         'api/register',
+        'api/logout',
     ];
 }

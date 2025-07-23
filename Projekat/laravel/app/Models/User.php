@@ -13,49 +13,48 @@ use Spatie\Permission\Traits\HasPermissions;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable,HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role_id',
+        'role_id'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
+  
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+
     public function role()
     {
-        return $this->belongsTo(Role::class);
+    return $this->belongsTo(Role::class);
     }
-
-  
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function clients()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+    return $this->hasMany(Client::class,'created_by');
     }
- 
+    public function hasRole($roleName)
+    {
+    return $this->role && $this->role->name === $roleName;
+    }
+protected static function boot()
+{
+    parent::boot();
+
+    static::creating(function ($user) {
+        if (!$user->role_id) {
+            $user->role_id = Role::where('name', 'User')->first()->id; // Podrazumevana uloga je 'User'
+        }
+    });
+}
 }
