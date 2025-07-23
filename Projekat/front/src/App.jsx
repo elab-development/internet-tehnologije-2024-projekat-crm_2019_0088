@@ -7,7 +7,7 @@ import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
-
+import { AuthProvider } from './util/AuthProvider';
 const App = () => {
   return (
     <Router>
