@@ -1,66 +1,60 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  FaHome,
-  FaList,
-  FaUser,
-  FaCog,
-  FaCreditCard,
-  FaBars,
-} from 'react-icons/fa';
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Users, BarChart3, Settings, TrendingUp, FileText } from 'lucide-react';
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+  const menuItems = [
+    {
+      id: 'dashboard',
+      label: 'Overview',
+      icon: BarChart3,
+      path: '/dashboard',
+    },
+    {
+      id: 'clients',
+      label: 'Clients',
+      icon: Users,
+      path: '/clients',
+    },
+    {
+      id: 'invoice',
+      label: 'Invoice',
+      icon: FileText,
+      path: '/invoice',
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      path: '/settings',
+    },
+  ];
 
   return (
-    <>
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 text-white bg-gray-900 p-2 rounded-lg hover:bg-gray-800"
-        onClick={toggleSidebar}
-      >
-        <FaBars className="text-xl" />
-      </button>
-      <div
-        className={`bg-gray-900 text-gray-100 h-screen w-64 fixed left-0 top-0 transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0`}
-      >
-        <div className="p-6">
-          <h1 className="text-3xl font-bold mb-10 text-white">Dashboard</h1>
-          <nav>
-            <ul className="space-y-4">
-              <Link
-                to="/"
-                className="flex items-center space-x-3 w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-800 hover:text-white"
-              >
-                <FaHome className="text-xl" />
-                <span className="font-medium">Home</span>
-              </Link>
-
-              <Link
-                to="/clients"
-                className="flex items-center space-x-3 w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-800 hover:text-white"
-              >
-                <FaUser className="text-xl" />
-                <span className="font-medium">Clients</span>
-              </Link>
-
-              <Link
-                to="/invoices"
-                className="flex items-center space-x-3 w-full p-3 rounded-lg transition-all duration-200 hover:bg-gray-800 hover:text-white"
-              >
-                <FaCreditCard className="text-xl" />
-                <span className="font-medium">Invoices</span>
-              </Link>
-            </ul>
-          </nav>
+    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+      <nav className="p-4">
+        <div className="space-y-2">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.id}
+              to={item.path}
+              className={({ isActive }) =>
+                `w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`
+              }
+            >
+              <item.icon className="w-5 h-5 mr-3" />
+              {item.label}
+            </NavLink>
+          ))}
         </div>
-      </div>
-    </>
+      </nav>
+    </div>
   );
 };
 
