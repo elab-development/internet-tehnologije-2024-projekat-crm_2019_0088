@@ -8,28 +8,59 @@ use Illuminate\Database\Eloquent\Model;
 class Invoice extends Model
 {
     use HasFactory;
-    protected $table = 'invoices';
+
     protected $fillable = [
         'invoice_number',
         'client_id',
-        'invoice_date',
-        'due_date',
+        'created_by',
+        'amount',
+        'tax_amount',
         'total_amount',
-        'paid_amount',
         'status',
+        'issue_date',
+        'due_date',
         'notes',
+        'items'
     ];
 
     protected $casts = [
-        'invoice_date' => 'date',
-        'due_date' => 'date',
+        'amount' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
-        'paid_amount' => 'decimal:2',
+        'issue_date' => 'date',
+        'due_date' => 'date',
+        'items' => 'array'
     ];
+
     public function client()
     {
         return $this->belongsTo(Client::class);
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
+    // Generate unique invoice number
+    public static function generateInvoiceNumber()
+    {
+        $lastInvoice = static::orderBy('id', 'desc')->first();
+        $number = $lastInvoice ? (int)substr($lastInvoice->invoice_number, 4) + 1 : 1;
+        return 'INV-' . str_pad($number, 6, '0', STR_PAD_LEFT);
+    }
+
+    // Scope for filtering by creator
+    public function scopeCreatedBy($query, $userId)
+    {
+        return $query->where('created_by', $userId);
+    }
+
+    // Scope for overdue invoices
+    public function scopeOverdue($query)
+    {
+        return $query->where('due_date', '<', now())
+                    ->where('status', '!=', 'Paid')
+                    ->where('status', '!=', 'Cancelled');
+    }
 }

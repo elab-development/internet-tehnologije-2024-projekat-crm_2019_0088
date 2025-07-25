@@ -16,7 +16,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     // Client routes - available to all authenticated users
     Route::get('/clients', [ClientController::class, 'index']);
     Route::get('/clients/{client}', [ClientController::class, 'show']);

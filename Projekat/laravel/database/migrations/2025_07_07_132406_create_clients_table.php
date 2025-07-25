@@ -15,16 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('phone', 20)->nullable();
-            $table->string('company_name')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('company')->nullable();
             $table->text('address')->nullable();
-            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->enum('status', ['Active', 'Inactive', 'Pending'])->default('Active');
+            $table->decimal('total_value', 10, 2)->default(0);
+            $table->unsignedBigInteger('created_by');
             $table->timestamps();
-            $table->softDeletes();
-            
-            $table->index(['email', 'phone']);
-            $table->index('created_by');
-            $table->index('company_name');
+
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
+            $table->index(['status', 'created_by']);
         });
     }
 

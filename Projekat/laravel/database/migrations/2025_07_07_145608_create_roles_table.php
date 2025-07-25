@@ -15,12 +15,15 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('description')->nullable();
             $table->timestamps();
         });
-         // Insert default roles
-         DB::table('roles')->insert([
-            ['id' => 1, 'name' => 'Admin', 'description' => 'Administrator role', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'User', 'description' => 'Regular user role', 'created_at' => now(), 'updated_at' => now()],
+        
+        // Insert default roles
+        DB::table('roles')->insert([
+            ['id' => 1, 'name' => 'Admin', 'description' => 'Full access to all features', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 2, 'name' => 'User', 'description' => 'Basic user with dashboard and settings access only', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 3, 'name' => 'Client', 'description' => 'Client with view access but cannot create clients/invoices', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 
