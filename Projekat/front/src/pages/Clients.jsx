@@ -14,6 +14,7 @@ import {
   Phone,
   User,
 } from 'lucide-react';
+import { clientService } from '../components/services/clientService';
 
 const ClientsPage = () => {
   const [clients, setClients] = useState([
@@ -47,26 +48,6 @@ const ClientsPage = () => {
       timestamp: '2023/03/20',
       status: 'Inactive',
     },
-    {
-      id: 4,
-      name: 'Digital Dynamics',
-      email: 'hello@digital.com',
-      phone: '456-789-0123',
-      company: 'Digital Corp',
-      createdBy: 'Sarah Wilson',
-      timestamp: '2023/04/05',
-      status: 'Active',
-    },
-    {
-      id: 5,
-      name: 'Future Systems',
-      email: 'info@future.com',
-      phone: '567-890-1234',
-      company: 'Future Ltd',
-      createdBy: 'Tom Brown',
-      timestamp: '2023/05/10',
-      status: 'Active',
-    },
   ]);
 
   const [showModal, setShowModal] = useState(false);
@@ -80,6 +61,19 @@ const ClientsPage = () => {
     phone: '',
     company: '',
   });
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  const fetchClients = async () => {
+    try {
+      const response = await clientService.getAll();
+      setClients(response.data);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+    }
+  };
 
   // Load clients from localStorage
   useEffect(() => {
@@ -110,7 +104,7 @@ const ClientsPage = () => {
     }
   }, [searchTerm, clients]);
 
-  const handleAddClient = () => {
+  const handleAddClient = async () => {
     if (
       !newClient.name ||
       !newClient.email ||
@@ -121,22 +115,25 @@ const ClientsPage = () => {
       return;
     }
 
-    const client = {
-      id: clients.length + 1,
-      ...newClient,
-      createdBy: 'Current User',
-      timestamp: new Date().toLocaleDateString(),
-      status: 'Active',
-    };
-
-    setClients([...clients, client]);
-    setNewClient({ name: '', email: '', phone: '', company: '' });
-    setShowModal(false);
+    try {
+      const response = await clientService.create(newClient);
+      setClients([...clients, response.data.client]);
+      setNewClient({ name: '', email: '', phone: '', company: '' });
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error creating client:', error);
+      alert('Failed to create client');
+    }
   };
-
-  const handleDeleteClient = (clientId) => {
+  const handleDeleteClient = async (clientId) => {
     if (window.confirm('Are you sure you want to delete this client?')) {
-      setClients(clients.filter((client) => client.id !== clientId));
+      try {
+        await clientService.delete(clientId);
+        setClients(clients.filter((client) => client.id !== clientId));
+      } catch (error) {
+        console.error('Error deleting client:', error);
+        alert('Failed to delete client');
+      }
     }
   };
 

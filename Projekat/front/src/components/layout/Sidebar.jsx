@@ -1,9 +1,11 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Users, BarChart3, Settings, TrendingUp, FileText } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
+  const { user, canAccess, isUser } = useAuth();
 
   const menuItems = [
     {
@@ -32,11 +34,50 @@ const Sidebar = () => {
     },
   ];
 
+  const getVisibleMenuItems = () => {
+    if (!user) return [];
+
+    // If user is "User" role, only show dashboard
+    if (isUser()) {
+      return menuItems.filter((item) => item.id === 'dashboard');
+    }
+
+    // For Admin and Client roles, show items based on permissions
+    return menuItems.filter((item) => {
+      // Always show dashboard
+      if (item.id === 'dashboard') return true;
+
+      // Check permission for other items
+      if (item.permission) {
+        return canAccess(item.permission);
+      }
+
+      return true;
+    });
+  };
+
+  const visibleMenuItems = getVisibleMenuItems();
+
+  // Don't render sidebar if no user is logged in
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
       <nav className="p-4">
+        {/* User info section */}
+        <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+          <div className="text-xs text-gray-500">{user.role}</div>
+          {user.company && (
+            <div className="text-xs text-gray-500">{user.company}</div>
+          )}
+        </div>
+
+        {/* Navigation menu */}
         <div className="space-y-2">
-          {menuItems.map((item) => (
+          {visibleMenuItems.map((item) => (
             <NavLink
               key={item.id}
               to={item.path}
@@ -53,6 +94,16 @@ const Sidebar = () => {
             </NavLink>
           ))}
         </div>
+
+        {/* Role-based message for User role */}
+        {isUser() && (
+          <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="text-xs text-yellow-800">
+              Your access is limited to the dashboard. Contact your
+              administrator for additional permissions.
+            </div>
+          </div>
+        )}
       </nav>
     </div>
   );
