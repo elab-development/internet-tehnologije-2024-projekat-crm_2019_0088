@@ -18,6 +18,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     // Client routes - available to all authenticated users
+
+    Route::apiResource('clients', ClientController::class);
+    
+    // Invoice routes
+    Route::apiResource('invoices', InvoiceController::class);
+    Route::get('invoices/export', [InvoiceController::class, 'export']);
     Route::get('/clients', [ClientController::class, 'index']);
     Route::get('/clients/{client}', [ClientController::class, 'show']);
     

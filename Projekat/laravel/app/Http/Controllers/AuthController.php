@@ -34,8 +34,8 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => $role->id,
-            'company' => $request->company,
-            'phone' => $request->phone,
+            // 'company' => $request->company,
+           // 'phone' => $request->phone,
         ]);
 
         // Load the role relationship
@@ -180,7 +180,7 @@ class AuthController extends Controller
             case 'Client':
                 $permissions = array_merge($permissions, [
                     'canViewClients' => true,
-                    'canViewInvoices' => true,
+                    'canViewInvoices' => false,
                 ]);
                 break;
             case 'User':
