@@ -74,12 +74,46 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const hasPermission = (permission) => {
+    return user?.permissions?.[permission] || false;
+  };
+
+  const isAdmin = () => {
+    return user?.role === 'Admin';
+  };
+
+  const isClient = () => {
+    return user?.role === 'Client';
+  };
+
+  const isUser = () => {
+    return user?.role === 'User';
+  };
+
+  const canAccess = (section) => {
+    switch (section) {
+      case 'clients':
+        return hasPermission('canViewClients');
+      case 'invoices':
+        return hasPermission('canViewInvoices');
+      case 'settings':
+        return hasPermission('canViewSettings');
+      default:
+        return false;
+    }
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
     loading,
+    hasPermission,
+    isAdmin,
+    isClient,
+    isUser,
+    canAccess,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
