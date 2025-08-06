@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog } from '@headlessui/react';
 import { PlusIcon, CheckCircleIcon, XCircleIcon } from 'lucide-react';
+import Modal from '../components/common/Modal';
+import SearchButton from '../components/common/SearchButton';
+import FilterButton from '../components/common/FilterButton';
 
 const InvoicePage = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [invoices, setInvoices] = useState([
     {
       id: 1,
@@ -105,21 +106,11 @@ const InvoicePage = () => {
       createdAt: '2025-01-28',
     },
   ]);
-  // Ucitavanje racuna iz localStorage-a kada se komponenta mountuje
-  useEffect(() => {
-    const savedInvoices = JSON.parse(localStorage.getItem('invoices'));
-    if (savedInvoices) {
-      setInvoices(savedInvoices);
-    }
-  }, []);
 
-  // Cuvanje racuna u localStorage svaki put kada se promeni niz racuna
-  useEffect(() => {
-    localStorage.setItem('invoices', JSON.stringify(invoices));
-  }, [invoices]);
-
+  const [originalInvoices, setOriginalInvoices] = useState([]);
+  const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({});
   const [newInvoice, setNewInvoice] = useState({
     invoiceNumber: '',
     client: '',
@@ -127,16 +118,62 @@ const InvoicePage = () => {
     dueDate: '',
   });
 
+  // Store original data and initialize filtered data
+  useEffect(() => {
+    setOriginalInvoices(invoices);
+    setFilteredInvoices(invoices);
+  }, []);
+
+  // Load from localStorage
+  useEffect(() => {
+    const savedInvoices = JSON.parse(localStorage.getItem('invoices'));
+    if (savedInvoices) {
+      setInvoices(savedInvoices);
+      setOriginalInvoices(savedInvoices);
+      setFilteredInvoices(savedInvoices);
+    }
+  }, []);
+
+  // Save to localStorage
+  useEffect(() => {
+    localStorage.setItem('invoices', JSON.stringify(invoices));
+  }, [invoices]);
+
+  // Filter configuration
+  const filterConfig = [
+    {
+      key: 'status',
+      label: 'Payment Status',
+      type: 'checkbox',
+      options: [
+        { value: 'paid', label: 'Paid' },
+        { value: 'pending', label: 'Pending' },
+      ],
+    },
+    {
+      key: 'amountRange',
+      label: 'Amount Range',
+      type: 'checkbox',
+      options: [
+        { value: '0-1000', label: '$0 - $1,000' },
+        { value: '1000-2500', label: '$1,000 - $2,500' },
+        { value: '2500-4000', label: '$2,500 - $4,000' },
+        { value: '4000+', label: '$4,000+' },
+      ],
+    },
+    {
+      key: 'dueMonth',
+      label: 'Due Date',
+      type: 'checkbox',
+      options: [
+        { value: '2025-01', label: 'January 2025' },
+        { value: '2025-02', label: 'February 2025' },
+        { value: '2025-03', label: 'March 2025' },
+      ],
+    },
+  ];
+
   const handleAddInvoice = () => {
-    // Kreiranje novog racuna
-    const invoice = {
-      id: invoices.length + 1, // Automatski ID
-      ...newInvoice, // Podaci uneti u formu
-      isPaid: false, // Novi računi su uvek "neplaceni" na pocetku
-      createdAt: new Date().toISOString().split('T')[0], // Datum kreiranja
-      amount: parseFloat(newInvoice.amount), // Pretvara iz stringa u broj
-    };
-    // Validacija podataka
     if (
       !newInvoice.invoiceNumber ||
       !newInvoice.client ||
@@ -146,10 +183,20 @@ const InvoicePage = () => {
       alert('Please fill in all fields');
       return;
     }
-    // Dodavanje novog racuna u listu
-    setInvoices([...invoices, invoice]);
 
-    // Resetovanje forme
+    const invoice = {
+      id: invoices.length + 1,
+      ...newInvoice,
+      isPaid: false,
+      createdAt: new Date().toISOString().split('T')[0],
+      amount: parseFloat(newInvoice.amount),
+    };
+
+    const updatedInvoices = [...invoices, invoice];
+    setInvoices(updatedInvoices);
+    setOriginalInvoices(updatedInvoices);
+    applyFiltersAndSearch(updatedInvoices);
+
     setNewInvoice({
       invoiceNumber: '',
       client: '',
@@ -157,121 +204,200 @@ const InvoicePage = () => {
       dueDate: '',
     });
 
-    // Zatvaranje modala
     setShowModal(false);
   };
+
   const togglePaymentStatus = (id) => {
-    setInvoices(
-      invoices.map((invoice) =>
-        invoice.id === id ? { ...invoice, isPaid: !invoice.isPaid } : invoice
+    const updatedInvoices = invoices.map((invoice) =>
+      invoice.id === id ? { ...invoice, isPaid: !invoice.isPaid } : invoice
+    );
+    setInvoices(updatedInvoices);
+    setOriginalInvoices(updatedInvoices);
+    applyFiltersAndSearch(updatedInvoices);
+  };
+
+  const handleSearch = (searchTerm) => {
+    const searchResults = originalInvoices.filter((invoice) =>
+      Object.values(invoice).some((value) =>
+        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
+
+    if (searchResults.length === 0) {
+      alert('No matching invoices found!');
+      return;
+    }
+
+    setFilteredInvoices(searchResults);
+  };
+
+  const handleClearSearch = () => {
+    applyFiltersAndSearch(originalInvoices);
+  };
+
+  const handleFilterChange = (filterKey, value) => {
+    const newFilters = { ...activeFilters, [filterKey]: value };
+    setActiveFilters(newFilters);
+    applyFiltersAndSearch(originalInvoices, newFilters);
+  };
+
+  const applyFiltersAndSearch = (dataToFilter, filters = activeFilters) => {
+    let filtered = [...dataToFilter];
+
+    // Apply payment status filter
+    if (filters.status && filters.status.length > 0) {
+      filtered = filtered.filter((invoice) => {
+        const status = invoice.isPaid ? 'paid' : 'pending';
+        return filters.status.includes(status);
+      });
+    }
+
+    // Apply amount range filter
+    if (filters.amountRange && filters.amountRange.length > 0) {
+      filtered = filtered.filter((invoice) => {
+        return filters.amountRange.some((range) => {
+          switch (range) {
+            case '0-1000':
+              return invoice.amount >= 0 && invoice.amount <= 1000;
+            case '1000-2500':
+              return invoice.amount > 1000 && invoice.amount <= 2500;
+            case '2500-4000':
+              return invoice.amount > 2500 && invoice.amount <= 4000;
+            case '4000+':
+              return invoice.amount > 4000;
+            default:
+              return false;
+          }
+        });
+      });
+    }
+
+    // Apply due month filter
+    if (filters.dueMonth && filters.dueMonth.length > 0) {
+      filtered = filtered.filter((invoice) => {
+        const dueMonth = invoice.dueDate.substring(0, 7); // YYYY-MM format
+        return filters.dueMonth.includes(dueMonth);
+      });
+    }
+
+    setFilteredInvoices(filtered);
   };
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Invoices</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Invoices</h1>
+          <p className="text-gray-600 mt-1">
+            Showing {filteredInvoices.length} of {originalInvoices.length}{' '}
+            invoices
+          </p>
+        </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          New Invoice
-        </button>
+        <div className="flex flex-wrap items-center gap-4">
+          <SearchButton
+            onSearch={handleSearch}
+            onClear={handleClearSearch}
+            placeholder="Search invoices..."
+          />
+
+          <FilterButton
+            filters={filterConfig}
+            activeFilters={activeFilters}
+            onFilterChange={handleFilterChange}
+          />
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            New Invoice
+          </button>
+        </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-medium">Create New Invoice</h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Invoice Number
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  value={newInvoice.invoiceNumber}
-                  onChange={(e) =>
-                    setNewInvoice({
-                      ...newInvoice,
-                      invoiceNumber: e.target.value,
-                    })
-                  }
-                  placeholder="INV-001"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Client Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  value={newInvoice.client}
-                  onChange={(e) =>
-                    setNewInvoice({ ...newInvoice, client: e.target.value })
-                  }
-                  placeholder="Client name"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Amount
-                </label>
-                <input
-                  type="number"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  value={newInvoice.amount}
-                  onChange={(e) =>
-                    setNewInvoice({ ...newInvoice, amount: e.target.value })
-                  }
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  value={newInvoice.dueDate}
-                  onChange={(e) =>
-                    setNewInvoice({ ...newInvoice, dueDate: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <button
-                onClick={handleAddInvoice}
-                className="w-full px-4 py-2  text-white rounded-md bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-              >
-                Add Invoice
-              </button>
-            </div>
+      {/* Add Invoice Modal */}
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Create New Invoice"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Invoice Number
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newInvoice.invoiceNumber}
+              onChange={(e) =>
+                setNewInvoice({
+                  ...newInvoice,
+                  invoiceNumber: e.target.value,
+                })
+              }
+              placeholder="INV-001"
+              required
+            />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Client Name
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newInvoice.client}
+              onChange={(e) =>
+                setNewInvoice({ ...newInvoice, client: e.target.value })
+              }
+              placeholder="Client name"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Amount
+            </label>
+            <input
+              type="number"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newInvoice.amount}
+              onChange={(e) =>
+                setNewInvoice({ ...newInvoice, amount: e.target.value })
+              }
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Due Date
+            </label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newInvoice.dueDate}
+              onChange={(e) =>
+                setNewInvoice({ ...newInvoice, dueDate: e.target.value })
+              }
+              required
+            />
+          </div>
+
+          <button
+            onClick={handleAddInvoice}
+            className="w-full px-4 py-2 text-white rounded-md bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+          >
+            Add Invoice
+          </button>
         </div>
-      )}
+      </Modal>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
@@ -302,8 +428,11 @@ const InvoicePage = () => {
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-200">
-            {invoices.map((invoice) => (
-              <tr key={invoice.id}>
+            {filteredInvoices.map((invoice) => (
+              <tr
+                key={invoice.id}
+                className="hover:bg-gray-50 transition-colors"
+              >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {invoice.invoiceNumber}
                 </td>
@@ -347,6 +476,14 @@ const InvoicePage = () => {
             ))}
           </tbody>
         </table>
+
+        {filteredInvoices.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500">
+              No invoices found matching your criteria.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

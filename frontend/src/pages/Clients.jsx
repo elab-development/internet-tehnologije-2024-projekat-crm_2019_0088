@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Dialog, Menu, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import ButtonClose from '../components/common/ButtonClose';
+import { PlusIcon } from 'lucide-react';
+import Modal from '../components/common/Modal';
 import SearchButton from '../components/common/SearchButton';
 import FilterButton from '../components/common/FilterButton';
-import OptionButton from '../components/common/OptionButton';
-import AddClientButton from '../components/features/clients/AddClientButton';
 import SortButton from '../components/common/SortButton';
-import { ArrowUpDown, PlusIcon, Search } from 'lucide-react';
 
 const ClientsPage = () => {
   const [clients, setClients] = useState([
@@ -113,47 +109,56 @@ const ClientsPage = () => {
     },
   ]);
 
-  const [showModal, setShowModal] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [originalClients, setOriginalClients] = useState([]);
+  const [filteredClients, setFilteredClients] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [searchEmail, setSearchEmail] = useState('');
+  const [activeFilters, setActiveFilters] = useState({});
   const [newClient, setNewClient] = useState({
-    clientName: '',
+    name: '',
     email: '',
     phone: '',
     company: '',
-    timestamp: '',
   });
 
+  // Store original data and initialize filtered data
+  useEffect(() => {
+    setOriginalClients(clients);
+    setFilteredClients(clients);
+  }, []);
+
+  // Load from localStorage
   useEffect(() => {
     const savedClients = JSON.parse(localStorage.getItem('clients'));
     if (savedClients) {
       setClients(savedClients);
+      setOriginalClients(savedClients);
+      setFilteredClients(savedClients);
     }
   }, []);
 
+  // Save to localStorage
   useEffect(() => {
     localStorage.setItem('clients', JSON.stringify(clients));
   }, [clients]);
 
-  const addClient = (newClient) => {
-    setClients([...clients, newClient]);
-  };
-  const handleAddClient = () => {
-    const client = {
-      id: clients.length + 1,
-      name: newClient.clientName,
-      email: newClient.email,
-      phone: newClient.phone,
-      company: newClient.company,
-      createdBy: 'Current User',
-      timestamp: new Date().toISOString().split('T')[0],
-      status: 'Active',
-    };
+  // Filter configuration
+  const filterConfig = [
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'checkbox',
+      options: [
+        { value: 'Active', label: 'Active' },
+        { value: 'Inactive', label: 'Inactive' },
+      ],
+    },
+  ];
 
+  const handleAddClient = () => {
     if (
-      !newClient.clientName ||
+      !newClient.name ||
       !newClient.email ||
       !newClient.phone ||
       !newClient.company
@@ -162,55 +167,82 @@ const ClientsPage = () => {
       return;
     }
 
-    setClients([...clients, client]);
+    const client = {
+      id: clients.length + 1,
+      name: newClient.name,
+      email: newClient.email,
+      phone: newClient.phone,
+      company: newClient.company,
+      createdBy: 'Current User',
+      timestamp: new Date().toLocaleDateString(),
+      status: 'Active',
+    };
 
-    setNewClient({
-      clientName: '',
-      email: '',
-      phone: '',
-      company: '',
-      timestamp: '',
-    });
+    const updatedClients = [...clients, client];
+    setClients(updatedClients);
+    setOriginalClients(updatedClients);
+    applyFiltersAndSearch(updatedClients);
 
-    setShowModal(false);
+    setNewClient({ name: '', email: '', phone: '', company: '' });
+    setShowAddModal(false);
   };
-  function closeModal() {
-    setIsOpen(false);
-  }
 
-  function openModal(client) {
-    setSelectedClient(client);
-    setIsOpen(true);
-  }
-
-  function toggleSearchModal() {
-    setIsSearchOpen(!isSearchOpen);
-  }
-
-  function handleSearch() {
-    const searchTerm = searchEmail.toLowerCase();
-    const foundClients = clients.filter((client) =>
+  const handleSearch = (searchTerm) => {
+    const searchResults = originalClients.filter((client) =>
       Object.values(client).some((value) =>
-        value.toString().toLowerCase().includes(searchTerm)
+        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
 
-    if (foundClients.length > 0) {
-      setClients(foundClients);
-    } else {
+    if (searchResults.length === 0) {
       alert('No matching clients found!');
-      setClients(clients);
+      return;
     }
-  }
 
-  function handleEdit(client) {
-    // Implement edit logic here
-    console.log('Editing client:', client);
-  }
+    setFilteredClients(searchResults);
+  };
 
-  function handleDelete(clientId) {
-    setClients(clients.filter((client) => client.id !== clientId));
-  }
+  const handleClearSearch = () => {
+    applyFiltersAndSearch(originalClients);
+  };
+
+  const handleFilterChange = (filterKey, value) => {
+    const newFilters = { ...activeFilters, [filterKey]: value };
+    setActiveFilters(newFilters);
+    applyFiltersAndSearch(originalClients, newFilters);
+  };
+
+  const applyFiltersAndSearch = (dataToFilter, filters = activeFilters) => {
+    let filtered = [...dataToFilter];
+
+    // Apply status filter
+    if (filters.status && filters.status.length > 0) {
+      filtered = filtered.filter((client) =>
+        filters.status.includes(client.status)
+      );
+    }
+
+    // Apply created by filter
+    if (filters.createdBy && filters.createdBy.length > 0) {
+      filtered = filtered.filter((client) =>
+        filters.createdBy.includes(client.createdBy)
+      );
+    }
+
+    setFilteredClients(filtered);
+  };
+
+  const handleDelete = (clientId) => {
+    const updatedClients = clients.filter((client) => client.id !== clientId);
+    setClients(updatedClients);
+    setOriginalClients(updatedClients);
+    applyFiltersAndSearch(updatedClients);
+  };
+
+  const openViewModal = (client) => {
+    setSelectedClient(client);
+    setShowViewModal(true);
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -230,173 +262,35 @@ const ClientsPage = () => {
               <div className="flex items-center w-full sm:w-auto justify-between sm:justify-start">
                 <h1 className="text-lg font-medium">Clients</h1>
                 <div className="ml-4 text-sm text-gray-500">
-                  • {clients.length}
+                  • {filteredClients.length} of {originalClients.length}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto justify-center sm:justify-end">
-                {/* SORT BUTTON */}
-                <SortButton clients={clients} setClients={setClients} />
-                {/* ADD BUTTON */}
+                <SortButton
+                  clients={filteredClients}
+                  setClients={setFilteredClients}
+                />
+
                 <button
-                  onClick={() => setShowModal(true)}
+                  onClick={() => setShowAddModal(true)}
                   className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                 >
                   <PlusIcon className="w-4 h-4 mr-2" />
                   New Client
                 </button>
-                {/* SEARCH BUTTON */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const searchTerm = prompt('Enter search term:');
-                    if (searchTerm) {
-                      const foundClients = clients.filter((client) =>
-                        Object.values(client).some((value) =>
-                          value
-                            .toString()
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase())
-                        )
-                      );
-                      if (foundClients.length > 0) {
-                        setClients(foundClients);
-                      } else {
-                        alert('No matching clients found!');
-                        setClients(clients);
-                      }
-                    }
-                  }}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <Search className="h-5 w-5 mr-2" />
-                  Search
-                </button>
+
+                <SearchButton
+                  onSearch={handleSearch}
+                  onClear={handleClearSearch}
+                  placeholder="Search clients..."
+                />
+
+                <FilterButton
+                  filters={filterConfig}
+                  activeFilters={activeFilters}
+                  onFilterChange={handleFilterChange}
+                />
               </div>
-              {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                  <div className="bg-white rounded-lg max-w-md w-full p-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-lg font-medium">Add New Client</h2>
-                      <button
-                        onClick={() => setShowModal(false)}
-                        className="text-gray-400 hover:text-gray-500"
-                      >
-                        ×
-                      </button>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Name
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          value={newClient.name}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              name: e.target.value,
-                            })
-                          }
-                          placeholder="Enter client name"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Email
-                        </label>
-                        <input
-                          type="email"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          value={newClient.email}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              email: e.target.value,
-                            })
-                          }
-                          placeholder="Enter email address"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Phone
-                        </label>
-                        <input
-                          type="tel"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          value={newClient.phone}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              phone: e.target.value,
-                            })
-                          }
-                          placeholder="Enter phone number"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Company
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          value={newClient.company}
-                          onChange={(e) =>
-                            setNewClient({
-                              ...newClient,
-                              company: e.target.value,
-                            })
-                          }
-                          placeholder="Enter company name"
-                          required
-                        />
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          if (
-                            !newClient.name ||
-                            !newClient.email ||
-                            !newClient.phone ||
-                            !newClient.company
-                          ) {
-                            alert('Please fill in all fields');
-                            return;
-                          }
-                          const client = {
-                            ...newClient,
-                            id: clients.length + 1,
-                            createdBy: 'Current User',
-                            timestamp: new Date().toLocaleDateString(),
-                            status: 'Active',
-                          };
-                          setClients([...clients, client]);
-                          setNewClient({
-                            name: '',
-                            email: '',
-                            phone: '',
-                            company: '',
-                          });
-                          setShowModal(false);
-                        }}
-                        className="w-full px-4 py-2 text-white rounded-md bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                      >
-                        Add Client
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}{' '}
             </div>
           </div>
         </div>
@@ -436,7 +330,7 @@ const ClientsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {clients.map((client) => (
+                {filteredClients.map((client) => (
                   <tr
                     key={client.id}
                     className="hover:bg-gray-50 transition-colors"
@@ -476,12 +370,11 @@ const ClientsPage = () => {
                     <td className="whitespace-nowrap px-2 sm:px-4 md:px-6 py-2 sm:py-4 text-right text-xs sm:text-sm">
                       <div className="flex flex-col sm:flex-row gap-2">
                         <button
-                          onClick={() => openModal(client)}
+                          onClick={() => openViewModal(client)}
                           className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                         >
                           View
                         </button>
-
                         <button
                           onClick={() => handleDelete(client.id)}
                           className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
@@ -498,87 +391,135 @@ const ClientsPage = () => {
         </div>
       </div>
 
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={closeModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-          </Transition.Child>
+      {/* Add Client Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add New Client"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newClient.name}
+              onChange={(e) =>
+                setNewClient({ ...newClient, name: e.target.value })
+              }
+              placeholder="Enter client name"
+              required
+            />
+          </div>
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-xs sm:max-w-sm md:max-w-md transform overflow-hidden rounded-2xl bg-white p-4 sm:p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg sm:text-xl font-bold leading-6 text-gray-900 mb-4"
-                  >
-                    Client Details
-                  </Dialog.Title>
-                  {selectedClient && (
-                    <div className="space-y-3">
-                      <div className="flex flex-col bg-gray-50 p-3 sm:p-4 rounded-lg">
-                        <p className="text-xs sm:text-sm md:text-base text-gray-700">
-                          <span className="font-semibold">Name:</span>{' '}
-                          {selectedClient.name}
-                        </p>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-700">
-                          <span className="font-semibold">Email:</span>{' '}
-                          {selectedClient.email}
-                        </p>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-700">
-                          <span className="font-semibold">Phone:</span>{' '}
-                          {selectedClient.phone}
-                        </p>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-700">
-                          <span className="font-semibold">Company:</span>{' '}
-                          {selectedClient.company}
-                        </p>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-700">
-                          <span className="font-semibold">Created By:</span>{' '}
-                          {selectedClient.createdBy}
-                        </p>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-700">
-                          <span className="font-semibold">Timestamp:</span>{' '}
-                          {selectedClient.timestamp}
-                        </p>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-700">
-                          <span className="font-semibold">Status:</span>{' '}
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${
-                              selectedClient.status === 'Active'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {selectedClient.status}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {/* <ButtonClose /> */}
-                </Dialog.Panel>
-              </Transition.Child>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newClient.email}
+              onChange={(e) =>
+                setNewClient({ ...newClient, email: e.target.value })
+              }
+              placeholder="Enter email address"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone
+            </label>
+            <input
+              type="tel"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newClient.phone}
+              onChange={(e) =>
+                setNewClient({ ...newClient, phone: e.target.value })
+              }
+              placeholder="Enter phone number"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Company
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={newClient.company}
+              onChange={(e) =>
+                setNewClient({ ...newClient, company: e.target.value })
+              }
+              placeholder="Enter company name"
+              required
+            />
+          </div>
+
+          <button
+            onClick={handleAddClient}
+            className="w-full px-4 py-2 text-white rounded-md bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+          >
+            Add Client
+          </button>
+        </div>
+      </Modal>
+
+      {/* View Client Modal */}
+      <Modal
+        isOpen={showViewModal}
+        onClose={() => setShowViewModal(false)}
+        title="Client Details"
+      >
+        {selectedClient && (
+          <div className="space-y-3">
+            <div className="flex flex-col bg-gray-50 p-3 sm:p-4 rounded-lg">
+              <p className="text-xs sm:text-sm md:text-base text-gray-700">
+                <span className="font-semibold">Name:</span>{' '}
+                {selectedClient.name}
+              </p>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700">
+                <span className="font-semibold">Email:</span>{' '}
+                {selectedClient.email}
+              </p>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700">
+                <span className="font-semibold">Phone:</span>{' '}
+                {selectedClient.phone}
+              </p>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700">
+                <span className="font-semibold">Company:</span>{' '}
+                {selectedClient.company}
+              </p>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700">
+                <span className="font-semibold">Created By:</span>{' '}
+                {selectedClient.createdBy}
+              </p>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700">
+                <span className="font-semibold">Timestamp:</span>{' '}
+                {selectedClient.timestamp}
+              </p>
+              <p className="text-xs sm:text-sm md:text-base text-gray-700">
+                <span className="font-semibold">Status:</span>{' '}
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${
+                    selectedClient.status === 'Active'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {selectedClient.status}
+                </span>
+              </p>
             </div>
           </div>
-        </Dialog>
-      </Transition>
+        )}
+      </Modal>
     </div>
   );
 };
