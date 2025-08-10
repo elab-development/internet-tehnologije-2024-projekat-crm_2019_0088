@@ -10,19 +10,19 @@ class UserController extends Controller
     public function index()
     {
         $user = User::all();
-        return $user;
+        return response()->json($user);
 
     }
 
     public function show(User $user)
     {
-        return $user;
+        return response()->json($user);
     }
 
     public function update(Request $request, User $user)
     {
         $user->update($request->all());
-        return response()->json(['message' => 'User updated successfully']);
+       return response()->json(['message' => 'User updated successfully']);
     }
 
     public function destroy(User $user)

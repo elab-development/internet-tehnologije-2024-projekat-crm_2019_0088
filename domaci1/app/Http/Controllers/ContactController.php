@@ -3,77 +3,58 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
-use App\Models\Client;
 use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
-   
     public function index()
     {
-        $contacts = Contact::with('client')
-            ->when(auth()->check() && !auth()->user()->hasRole('Admin'), function ($query) {
-                return $query->whereHas('client', function ($q) {
-                    $q->where('created_by', auth()->id());
-                });
-            })
-            ->paginate(10);
-
-        return response()->json($contacts);
+        // Prikaz svih kontakata, sa povezanim klijentom
+        return Contact::with('client')->get();
     }
-
-    
-    public function create()
-    {
-        $contacts = Contact::with('client')->paginate(10);
-        return response()->json($contacts);
-    }
-
-   
-    private function validateContact(Request $request)
-    {
-        return $request->validate([
-            'client_id'     => 'required|exists:clients,id',
-            'contact_name'  => 'required|string',
-            'contact_email' => 'nullable|string|email',
-            'contact_phone' => 'nullable|string',
-        ]);
-    }
-
 
     public function store(Request $request)
     {
-        $validated = $this->validateContact($request);
-        
-        // Provera da li korisnik ima pravo da ažurira klijenta kome se dodaje kontakt
-        $client = Client::findOrFail($validated['client_id']);
-        $this->authorize('update', $client);
+        // Validacija podataka
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'contact_name' => 'required|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:50',
+        ]);
 
         $contact = Contact::create($validated);
-        $contact->load('client');
 
-        return response()->json($contact, 201);
+        return response()->json(['success' => true, 'contact' => $contact], 201);
     }
 
-    public function update(Request $request, Contact $contact)
+    public function show($id)
     {
-        $this->validateContact($request);
-    
-        $contact->update($request->all());
-        $contact->load('client');
-        
-        return response()->json($contact);
-    }
-    
-
-
-    public function show(Contact $contact)
-    {
-        // Učitavamo relaciju ukoliko nije već učitana
-        $contact->loadMissing('client');
-        $this->authorize('view', $contact->client);
-        
+        // Prikaz pojedinacnog kontakta sa klijentom
+        $contact = Contact::with('client')->findOrFail($id);
         return response()->json($contact);
     }
 
+    public function update(Request $request, $id)
+    {
+        $contact = Contact::findOrFail($id);
+
+        $validated = $request->validate([
+            'contact_name' => 'sometimes|required|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:50',
+        ]);
+
+        $contact->update($validated);
+
+        return response()->json(['success' => true, 'contact' => $contact]);
+    }
+
+    public function destroy($id)
+    {
+        $contact = Contact::findOrFail($id);
+        $contact->delete();
+
+        return response()->json(['success' => true]);
+    }
 }
